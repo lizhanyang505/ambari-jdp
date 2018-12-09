@@ -1,1 +1,1 @@
-# clickhouse for ambari
+# jdp in ambari stack
