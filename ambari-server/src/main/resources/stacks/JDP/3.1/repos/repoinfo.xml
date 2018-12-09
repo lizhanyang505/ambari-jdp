@@ -16,7 +16,7 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://archive.fusionlab.cn/JDP/jdp_urlinfo.json</latest>
+  <latest>http://archive.fusionlab.cn/jdp/jdp_urlinfo.json</latest>
   <os family="redhat7">
     <repo>
       <baseurl>http://archive.fusionlab.cn/jdp/centos7/3.x/3.1.0.0</baseurl>
