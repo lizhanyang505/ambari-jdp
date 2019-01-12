@@ -1,0 +1,14 @@
+{
+  "JDP": {
+    "stack_selector": [
+      "jdp-select",
+      "/usr/bin/jdp-select",
+      "jdp-select"
+    ],
+    "conf_selector": [
+      "conf-select",
+      "/usr/bin/conf-select",
+      "conf-select"
+    ]
+  }
+}
