@@ -21,7 +21,7 @@
   <artifactId>ambari</artifactId>
   <packaging>pom</packaging>
   <name>Ambari Main</name>
-  <version>2.7.0.0.0</version>
+  <version>2.7.3.0.0</version>
   <description>Ambari</description>
   <url>http://ambari.apache.org/</url>
   <scm>
@@ -372,6 +372,10 @@
             <!-- generated DDL-->
             <exclude>**/createDDL.jdbc</exclude>
             <exclude>**/yarn.lock</exclude>
+
+            <exclude>ambari_python.egg-info/**</exclude>
+            <exclude>dist/**</exclude>
+            <exclude>build/**</exclude>
           </excludes>
         </configuration>
         <executions>

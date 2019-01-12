@@ -1,1 +1,1 @@
-# jdp in ambari stack
+# apache ambari
