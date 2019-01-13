@@ -198,7 +198,7 @@ if spark_transport_mode.lower() == 'binary':
 elif spark_transport_mode.lower() == 'http':
   spark_thrift_port = int(config['configurations']['spark2-hive-site-override']['hive.server2.thrift.http.port'])
 
-# thrift server support - available on HDP 2.3 or higher
+# thrift server support - available on JDP 2.3 or higher
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
 spark_thrift_fairscheduler_content = None
@@ -235,7 +235,7 @@ dfs_type = default("/clusterLevelParams/dfs_type", "")
 
 # livy related config
 
-# livy for spark2 is only supported from HDP 2.6
+# livy for spark2 is only supported from JDP 2.6
 has_livyserver = False
 
 if stack_version_formatted and check_stack_feature(StackFeature.SPARK_LIVY2, stack_version_formatted) and "livy2-env" in config['configurations']:

@@ -124,8 +124,8 @@ class AtlasServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = AtlasRecommender()
-    recommender.recommendAtlasConfigurationsFromHDP25(configurations, clusterData, services, hosts)
-    recommender.recommendAtlasConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendAtlasConfigurationsFromJDP25(configurations, clusterData, services, hosts)
+    recommender.recommendAtlasConfigurationsFromJDP26(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsForSSO(configurations, clusterData, services, hosts)
 
 
@@ -227,7 +227,7 @@ class AtlasRecommender(service_advisor.ServiceAdvisor):
       self.logger.info("Constructing atlas.rest.address=%s" % atlas_rest_address)
     return atlas_rest_address
 
-  def recommendAtlasConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
+  def recommendAtlasConfigurationsFromJDP25(self, configurations, clusterData, services, hosts):
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
     putAtlasRangerPluginProperty = self.putProperty(configurations, "ranger-atlas-plugin-properties", services)
     putAtlasEnvProperty = self.putProperty(configurations, "atlas-env", services)
@@ -357,7 +357,7 @@ class AtlasRecommender(service_advisor.ServiceAdvisor):
       putAtlasEnvProperty("atlas_server_max_new_size", atlas_server_max_new_size)
 
 
-  def recommendAtlasConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendAtlasConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putAtlasApplicationProperty = self.putProperty(configurations, "application-properties", services)
 
@@ -408,12 +408,12 @@ class AtlasValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(AtlasValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("application-properties", self.validateAtlasConfigurationsFromHDP25),
-                       ("atlas-env", self.validateAtlasConfigurationsFromHDP30)]
+    self.validators = [("application-properties", self.validateAtlasConfigurationsFromJDP25),
+                       ("atlas-env", self.validateAtlasConfigurationsFromJDP30)]
 
 
 
-  def validateAtlasConfigurationsFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAtlasConfigurationsFromJDP25(self, properties, recommendedDefaults, configurations, services, hosts):
     application_properties = self.getSiteProperties(configurations, "application-properties")
     validationItems = []
 
@@ -499,7 +499,7 @@ class AtlasValidator(service_advisor.ServiceAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "application-properties")
     return validationProblems
 
-  def validateAtlasConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAtlasConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     atlas_admin_password = properties['atlas.admin.password']
     if not bool(re.search(r'^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$', atlas_admin_password)) or bool(re.search('[\\\`"\']', atlas_admin_password)):

@@ -35,7 +35,7 @@
     </value-attributes>
     <on-ambari-upgrade add="false"/>
   </property>
-  <!-- TODO HDP 3.0, this property is deleted in Hadoop 3.0. Need to remove it during Stack Upgrade.
+  <!-- TODO JDP 3.0, this property is deleted in Hadoop 3.0. Need to remove it during Stack Upgrade.
   <property>
     <name>dfs.support.append</name>
     <value>true</value>
@@ -518,7 +518,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These configs were inherited from HDP 2.1 -->
+  <!-- These configs were inherited from JDP 2.1 -->
   <property>
     <name>dfs.namenode.audit.log.async</name>
     <value>true</value>
@@ -532,7 +532,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These configs were inherited from HDP 2.2 -->
+  <!-- These configs were inherited from JDP 2.2 -->
   <property>
     <name>dfs.namenode.startup.delay.block.deletion.sec</name>
     <value>3600</value>
@@ -589,7 +589,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These configs were inherited from HDP 2.3 -->
+  <!-- These configs were inherited from JDP 2.3 -->
   <property>
     <name>nfs.file.dump.dir</name>
     <value>/tmp/.hdfs-nfs</value>

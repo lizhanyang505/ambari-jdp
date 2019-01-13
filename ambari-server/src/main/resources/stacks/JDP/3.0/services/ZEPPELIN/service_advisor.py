@@ -121,7 +121,7 @@ class ZeppelinServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = ZeppelinRecommender()
-    recommender.recommendZeppelinConfigurationsFromHDP25(configurations, clusterData, services, hosts)
+    recommender.recommendZeppelinConfigurationsFromJDP25(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -175,7 +175,7 @@ class ZeppelinRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(ZeppelinRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendZeppelinConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
+  def recommendZeppelinConfigurationsFromJDP25(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
     :type clusterData dict

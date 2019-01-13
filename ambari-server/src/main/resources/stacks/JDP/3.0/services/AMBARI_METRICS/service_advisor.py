@@ -198,7 +198,7 @@ class AMBARI_METRICSServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = AMBARI_METRICSRecommender()
-    recommender.recommendAmsConfigurationsFromHDP206(configurations, clusterData, services, hosts)
+    recommender.recommendAmsConfigurationsFromJDP206(configurations, clusterData, services, hosts)
 
 
 
@@ -252,7 +252,7 @@ class AMBARI_METRICSRecommender(service_advisor.ServiceAdvisor):
     mountPoints.append("/")
     return mountPoints
 
-  def recommendAmsConfigurationsFromHDP206(self, configurations, clusterData, services, hosts):
+  def recommendAmsConfigurationsFromJDP206(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
     putAmsSiteProperty = self.putProperty(configurations, "ams-site", services)
@@ -457,11 +457,11 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(AMBARI_METRICSValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("ams-hbase-site", self.validateAmsHbaseSiteConfigurationsFromHDP206),
-                       ("ams-hbase-env", self.validateAmsHbaseEnvConfigurationsFromHDP206),
-                       ("ams-site", self.validateAmsSiteConfigurationsFromHDP206),
-                       ("ams-env", self.validateAmsEnvConfigurationsFromHDP206),
-                       ("ams-grafana-env", self.validateGrafanaEnvConfigurationsFromHDP206)]
+    self.validators = [("ams-hbase-site", self.validateAmsHbaseSiteConfigurationsFromJDP206),
+                       ("ams-hbase-env", self.validateAmsHbaseEnvConfigurationsFromJDP206),
+                       ("ams-site", self.validateAmsSiteConfigurationsFromJDP206),
+                       ("ams-env", self.validateAmsEnvConfigurationsFromJDP206),
+                       ("ams-grafana-env", self.validateGrafanaEnvConfigurationsFromJDP206)]
 
 
 
@@ -485,7 +485,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     mountPoints.append("/")
     return mountPoints
 
-  def validateAmsHbaseSiteConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAmsHbaseSiteConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     ams_site = self.getSiteProperties(configurations, "ams-site")
@@ -601,7 +601,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
 
 
-  def validateAmsHbaseEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAmsHbaseEnvConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
 
     ams_env = self.getSiteProperties(configurations, "ams-env")
     amsHbaseSite = self.getSiteProperties(configurations, "ams-hbase-site")
@@ -715,7 +715,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
 
-  def validateAmsSiteConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAmsSiteConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
 
     serviceAdvisor = AMBARI_METRICSServiceAdvisor()
@@ -737,7 +737,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ams-site")
 
 
-  def validateAmsEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateAmsEnvConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
 
     validationItems = []
     collectorHeapsizeDefaultItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "metrics_collector_heapsize")
@@ -752,7 +752,7 @@ class AMBARI_METRICSValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ams-env")
 
 
-  def validateGrafanaEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateGrafanaEnvConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
 
     grafana_pwd = properties.get("metrics_grafana_password")

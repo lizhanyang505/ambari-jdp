@@ -69,7 +69,7 @@ stack_supports_core_site_for_ranger_plugin = check_stack_feature(StackFeature.CO
 upgrade_from_version = upgrade_summary.get_source_version()
 
 # server configurations
-# Default value used in HDP 2.3.0.0 and earlier.
+# Default value used in JDP 2.3.0.0 and earlier.
 knox_data_dir = '/var/lib/knox/data'
 
 # Important, it has to be strictly greater than 2.3.0.0!!!
@@ -96,7 +96,7 @@ knox_conf_dir = '/etc/knox/conf'
 ldap_bin = '/usr/lib/knox/bin/ldap.sh'
 knox_client_bin = '/usr/lib/knox/bin/knoxcli.sh'
 
-# HDP 2.2+ parameters
+# JDP 2.2+ parameters
 if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
   knox_bin = format('{stack_root}/current/knox-server/bin/gateway.sh')
   knox_conf_dir = format('{stack_root}/current/knox-server/conf')

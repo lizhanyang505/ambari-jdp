@@ -124,7 +124,7 @@ class HiveServiceAdvisor(service_advisor.ServiceAdvisor):
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = HiveRecommender()
-    recommender.recommendHiveConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendHiveConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
 
 
@@ -179,7 +179,7 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
     self.HIVE_INTERACTIVE_SITE = "hive-interactive-site"
 
 
-  def recommendHiveConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendHiveConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     hiveSiteProperties = self.getSiteProperties(services["configurations"], "hive-site")
     hiveEnvProperties = self.getSiteProperties(services["configurations"], "hive-env")
     
@@ -518,7 +518,7 @@ class HiveRecommender(service_advisor.ServiceAdvisor):
     hooks_value = " " if len(hive_hooks) == 0 else ",".join(hive_hooks)
     putHiveSiteProperty("hive.exec.post.hooks", hooks_value)
 
-    # This is no longer used in HDP 2.5, but still needed in HDP 2.3 and 2.4
+    # This is no longer used in JDP 2.5, but still needed in JDP 2.3 and 2.4
     atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
     if is_atlas_present_in_cluster and atlas_server_host_info:
       atlas_rest_host = atlas_server_host_info["Hosts"]["host_name"]
@@ -695,14 +695,14 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     self.HIVE_INTERACTIVE_SITE = "hive-interactive-site"
     self.AMBARI_MANAGED_LLAP_QUEUE_NAME = "llap"
 
-    self.validators = [("hive-site", self.validateHiveConfigurationsFromHDP30),
-                       ("hive-env", self.validateHiveConfigurationsEnvFromHDP30),
-                       ("hiveserver2-site", self.validateHiveServer2ConfigurationsFromHDP30),
-                       ("hive-interactive-env", self.validateHiveInteractiveEnvConfigurationsFromHDP30),
-                       ("hive-interactive-site", self.validateHiveInteractiveSiteConfigurationsFromHDP30)]
+    self.validators = [("hive-site", self.validateHiveConfigurationsFromJDP30),
+                       ("hive-env", self.validateHiveConfigurationsEnvFromJDP30),
+                       ("hiveserver2-site", self.validateHiveServer2ConfigurationsFromJDP30),
+                       ("hive-interactive-env", self.validateHiveInteractiveEnvConfigurationsFromJDP30),
+                       ("hive-interactive-site", self.validateHiveInteractiveSiteConfigurationsFromJDP30)]
 
 
-  def validateHiveConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": "hive.tez.container.size", "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hive.tez.container.size")},
                         {"config-name": "hive.auto.convert.join.noconditionaltask.size", "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hive.auto.convert.join.noconditionaltask.size")} ]
     
@@ -749,7 +749,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
 
-  def validateHiveConfigurationsEnvFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveConfigurationsEnvFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     
     hive_env = properties
@@ -799,7 +799,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
 
-  def validateHiveServer2ConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveServer2ConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
 
     hive_server2 = properties
     validationItems = []
@@ -870,7 +870,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     return validationProblems
 
 
-  def validateHiveInteractiveEnvConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveInteractiveEnvConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_site_env_properties = self.getSiteProperties(configurations, "hive-interactive-env")
     yarn_site_properties = self.getSiteProperties(configurations, "yarn-site")
     validationItems = []
@@ -907,7 +907,7 @@ class HiveValidator(service_advisor.ServiceAdvisor):
     return validationProblems
 
 
-  def validateHiveInteractiveSiteConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHiveInteractiveSiteConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     """
     Does the following validation checks for HIVE_SERVER_INTERACTIVE's hive-interactive-site configs.
         1. Queue selected in 'hive.llap.daemon.queue.name' config should be sized >= to minimum required to run LLAP
@@ -1187,11 +1187,11 @@ class HiveValidator(service_advisor.ServiceAdvisor):
 
     if not hive_container_size:
       # This can happen (1). If config is missing in hive-interactive-site or (2). its an
-      # upgrade scenario from Ambari 2.4 to Ambari 2.5 with HDP 2.5 installed. Read it
+      # upgrade scenario from Ambari 2.4 to Ambari 2.5 with JDP 2.5 installed. Read it
       # from hive-site.
       #
-      # If Ambari 2.5 after upgrade from 2.4 is managing HDP 2.6 here, this config would have
-      # already been added in hive-interactive-site as part of HDP upgrade from 2.5 to 2.6,
+      # If Ambari 2.5 after upgrade from 2.4 is managing JDP 2.6 here, this config would have
+      # already been added in hive-interactive-site as part of JDP upgrade from 2.5 to 2.6,
       # and we wont end up in this block to look up in hive-site.
       hive_site = self.getServicesSiteProperties(services, "hive-site")
       if hive_site and "hive.tez.container.size" in hive_site:

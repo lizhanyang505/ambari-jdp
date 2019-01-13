@@ -52,7 +52,7 @@ def extract_spark_version(spark_home):
 config = Script.get_config()
 stack_root = Script.get_stack_root()
 
-# e.g. /var/lib/ambari-agent/cache/stacks/HDP/2.2/services/zeppelin-stack/package
+# e.g. /var/lib/ambari-agent/cache/stacks/JDP/2.2/services/zeppelin-stack/package
 service_packagedir = os.path.realpath(__file__).split('/scripts')[0]
 
 zeppelin_dirname = 'zeppelin-server'

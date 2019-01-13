@@ -105,7 +105,7 @@
             <timeout>1200</timeout>
           </commandScript>
 
-          <!-- TODO HDP 3.0, add later after UI is fixed,
+          <!-- TODO JDP 3.0, add later after UI is fixed,
           <dependencies>
             <dependency>
               <name>TEZ/TEZ_CLIENT</name>

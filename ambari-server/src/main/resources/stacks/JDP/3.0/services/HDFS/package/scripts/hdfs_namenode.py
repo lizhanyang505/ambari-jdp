@@ -98,7 +98,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None,
     #additional namenode)
     create_name_dirs(params.dfs_name_dir)
     generate_logfeeder_input_config('hdfs', Template("input.config-hdfs.json.j2", extra_imports=[default]))
-    # set up failover /  secure zookeper ACLs, this feature is supported from HDP 2.6 ownwards
+    # set up failover /  secure zookeper ACLs, this feature is supported from JDP 2.6 ownwards
     set_up_zkfc_security(params)
   elif action == "start":
     Logger.info("Called service {0} with upgrade_type: {1}".format(action, str(upgrade_type)))

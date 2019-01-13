@@ -19,7 +19,7 @@
  */
 -->
 <configuration>
-  <!-- These configs were inherited from HDP 2.3 -->
+  <!-- These configs were inherited from JDP 2.3 -->
   <property>
     <name>xasecure.policymgr.clientssl.keystore</name>
     <value>{{stack_root}}/current/hadoop-client/conf/ranger-plugin-keystore.jks</value>

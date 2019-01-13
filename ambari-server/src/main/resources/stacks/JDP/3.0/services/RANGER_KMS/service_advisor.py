@@ -123,10 +123,10 @@ class Ranger_KMSServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = RangerKMSRecommender()
-    recommender.recommendRangerKMSConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendRangerKMSConfigurationsFromHDP25(configurations, clusterData, services, hosts)
-    recommender.recommendRangerKMSConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-    recommender.recommendRangerKMSConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendRangerKMSConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendRangerKMSConfigurationsFromJDP25(configurations, clusterData, services, hosts)
+    recommender.recommendRangerKMSConfigurationsFromJDP26(configurations, clusterData, services, hosts)
+    recommender.recommendRangerKMSConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -175,7 +175,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerKMSRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendRangerKMSConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendRangerKMSConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
     putRangerKmsProperty = self.putProperty(configurations, "kms-properties", services)
@@ -256,7 +256,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
       putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.HTTP.hosts', 'delete', 'true')
       putRangerKmsSitePropertyAttribute('hadoop.kms.proxyuser.HTTP.users', 'delete', 'true')
 
-  def recommendRangerKMSConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
+  def recommendRangerKMSConfigurationsFromJDP25(self, configurations, clusterData, services, hosts):
 
     security_enabled = Ranger_KMSServiceAdvisor.isKerberosEnabled(services, configurations)
     required_services = [{'service' : 'RANGER', 'config-type': 'ranger-env', 'property-name': 'ranger_user', 'proxy-category': ['hosts', 'users', 'groups']},
@@ -268,7 +268,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     else:
       self.deleteKMSProxyUsers(configurations, services, hosts, required_services)
 
-  def recommendRangerKMSConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendRangerKMSConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
 
     ranger_kms_ssl_enabled = False
@@ -284,7 +284,7 @@ class RangerKMSRecommender(service_advisor.ServiceAdvisor):
     else:
       putRangerKmsEnvProperty("kms_port", "9292")
 
-  def recommendRangerKMSConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendRangerKMSConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     putRangerKmsEnvProperty = self.putProperty(configurations, "kms-env", services)
 
     if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']) \

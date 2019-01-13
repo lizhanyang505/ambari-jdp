@@ -73,7 +73,7 @@ agent_stack_retry_count = expect("/ambariLevelParams/agent_stack_retry_count", i
 stack_root = status_params.stack_root
 
 # The source stack will be present during a cross-stack upgrade.
-# E.g., BigInsights-4.2.5 or HDP-2.6
+# E.g., BigInsights-4.2.5 or JDP-2.6
 source_stack = default("/commandParams/source_stack", None)
 if source_stack is None:
   source_stack = upgrade_summary.get_source_stack("OOZIE")

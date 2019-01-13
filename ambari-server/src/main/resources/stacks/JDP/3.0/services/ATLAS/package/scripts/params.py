@@ -172,7 +172,7 @@ if 'atlas.sso.knox.publicKey' in application_properties:
 if check_stack_feature(StackFeature.ATLAS_UPGRADE_SUPPORT, version_for_stack_feature_checks):
   metadata_server_url = application_properties["atlas.rest.address"]
 else:
-  # In HDP 2.3 and 2.4 the property was computed and saved to the local config but did not exist in the database.
+  # In JDP 2.3 and 2.4 the property was computed and saved to the local config but did not exist in the database.
   metadata_server_url = format('{metadata_protocol}://{metadata_server_host}:{metadata_port}')
   application_properties["atlas.rest.address"] = metadata_server_url
 

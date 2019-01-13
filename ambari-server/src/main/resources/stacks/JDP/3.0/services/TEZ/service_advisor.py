@@ -122,10 +122,10 @@ class TezServiceAdvisor(service_advisor.ServiceAdvisor):
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = TezRecommender()
-    recommender.recommendTezConfigurationsFromHDP21(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendTezConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendTezConfigurationsFromJDP21(configurations, clusterData, services, hosts)
+    recommender.recommendTezConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+    recommender.recommendTezConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendTezConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
@@ -153,7 +153,7 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(TezRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendTezConfigurationsFromHDP21(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromJDP21(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
@@ -164,10 +164,10 @@ class TezRecommender(service_advisor.ServiceAdvisor):
       putTezProperty("tez.queue.name", recommended_tez_queue)
 
 
-  def recommendTezConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     if not "yarn-site" in configurations:
       self.calculateYarnAllocationSizes(configurations, services, hosts)
-      #properties below should be always present as they are provided in HDP206 stack advisor
+      #properties below should be always present as they are provided in JDP206 stack advisor
     yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
 
     putTezProperty = self.putProperty(configurations, "tez-site", services)
@@ -223,7 +223,7 @@ class TezRecommender(service_advisor.ServiceAdvisor):
     pass
 
 
-  def recommendTezConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
 
     putTezProperty = self.putProperty(configurations, "tez-site")
 
@@ -235,7 +235,7 @@ class TezRecommender(service_advisor.ServiceAdvisor):
         putTezProperty("tez.task.resource.memory.mb", configurations["hive-site"]["properties"]["hive.tez.container.size"])
 
     # remove 2gb limit for tez.runtime.io.sort.mb
-    # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
+    # in JDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
     taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
     # fit io.sort.mb into tenured regions
     putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.8 * 0.33))
@@ -283,7 +283,7 @@ class TezRecommender(service_advisor.ServiceAdvisor):
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
-  def recommendTezConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendTezConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     if "HIVE" in self.getServiceNames(services) and "hive-site" in services["configurations"] and "hive.metastore.warehouse.external.dir" in services["configurations"]["hive-site"]["properties"]:
       hive_metastore_warehouse_external_dir = services["configurations"]["hive-site"]["properties"]['hive.metastore.warehouse.external.dir']
@@ -302,18 +302,18 @@ class TezValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(TezValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("tez-site", self.validateTezConfigurationsFromHDP21),
-                       ("tez-site", self.validateTezConfigurationsFromHDP22)]
+    self.validators = [("tez-site", self.validateTezConfigurationsFromJDP21),
+                       ("tez-site", self.validateTezConfigurationsFromJDP22)]
 
 
-  def validateTezConfigurationsFromHDP21(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateTezConfigurationsFromJDP21(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.am.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'tez.am.java.opts')},
                         {"config-name": 'tez.queue.name', "item": self.validatorYarnQueue(properties, recommendedDefaults, 'tez.queue.name', services)} ]
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
 
-  def validateTezConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateTezConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
                         {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
                         {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},

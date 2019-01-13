@@ -19,7 +19,7 @@
  */
 -->
 <configuration>
-  <!-- These configs were inherited from HDP 2.3 -->
+  <!-- These configs were inherited from JDP 2.3 -->
   <property>
     <name>ranger.plugin.hdfs.service.name</name>
     <value>{{repo_name}}</value>

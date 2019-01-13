@@ -122,7 +122,7 @@ class KnoxServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = KnoxRecommender()
-    recommender.recommendKnoxConfigurationsFromHDP22(configurations, clusterData, services, hosts)
+    recommender.recommendKnoxConfigurationsFromJDP22(configurations, clusterData, services, hosts)
 
 
 
@@ -152,7 +152,7 @@ class KnoxRecommender(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
 
-  def recommendKnoxConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendKnoxConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     if "ranger-env" in services["configurations"] and "ranger-knox-plugin-properties" in services["configurations"] and \
         "ranger-knox-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putKnoxRangerPluginProperty = self.putProperty(configurations, "ranger-knox-plugin-properties", services)
@@ -231,10 +231,10 @@ class KnoxValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(KnoxValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("ranger-knox-plugin-properties", self.validateKnoxRangerPluginConfigurationsFromHDP22),
+    self.validators = [("ranger-knox-plugin-properties", self.validateKnoxRangerPluginConfigurationsFromJDP22),
                        ]
 
-  def validateKnoxRangerPluginConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateKnoxRangerPluginConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = self.getSiteProperties(configurations, "ranger-knox-plugin-properties")

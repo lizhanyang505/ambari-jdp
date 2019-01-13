@@ -132,7 +132,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.1 -->
+  <!-- These properties were inherited from JDP 2.1 -->
   <property>
     <name>apptimelineserver_heapsize</name>
     <value>1024</value>
@@ -146,7 +146,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- These properties were inherited from HDP 2.2 -->
+  <!-- These properties were inherited from JDP 2.2 -->
   <property>
     <name>yarn_cgroups_enabled</name>
     <value>false</value>

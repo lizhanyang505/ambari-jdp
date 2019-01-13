@@ -119,7 +119,7 @@ class SqoopServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = SqoopRecommender()
-    recommender.recommendSqoopConfigurationsFromHDP23(configurations, clusterData, services, hosts)
+    recommender.recommendSqoopConfigurationsFromJDP23(configurations, clusterData, services, hosts)
 
 
 
@@ -149,7 +149,7 @@ class SqoopRecommender(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
 
-  def recommendSqoopConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendSqoopConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
     putSqoopSiteProperty = self.putProperty(configurations, "sqoop-site", services)
     putSqoopEnvProperty = self.putProperty(configurations, "sqoop-env", services)
 

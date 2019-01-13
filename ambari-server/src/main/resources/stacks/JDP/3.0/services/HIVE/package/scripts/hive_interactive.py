@@ -178,7 +178,7 @@ def hive_interactive(name = None):
 
     Logger.info("Setup for Atlas Hive2 Hook done.")
   else:
-    # Required for HDP 2.5 stacks
+    # Required for JDP 2.5 stacks
     Logger.info("Skipping setup for Atlas Hook, as it is disabled/ not supported.")
     remove_atlas_hook_if_exists(merged_hive_interactive_site)
 

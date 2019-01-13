@@ -112,7 +112,7 @@ class SupersetServiceAdvisor(service_advisor.ServiceAdvisor):
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = SupersetRecommender()
-    recommender.recommendSupersetConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendSupersetConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
@@ -135,7 +135,7 @@ class SupersetRecommender(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
 
-  def recommendSupersetConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendSupersetConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     # superset is in list of services to be installed
     if 'superset' in services['configurations']:
       # Recommendations for Superset

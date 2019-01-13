@@ -20,7 +20,7 @@
  */
 -->
 <configuration supports_final="false" supports_adding_forbidden="false">
-    <!-- These configs were inherited from HDP 2.2 -->
+    <!-- These configs were inherited from JDP 2.2 -->
     <property>
         <name>content</name>
         <display-name>viewFS mountTable</display-name>

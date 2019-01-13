@@ -122,7 +122,7 @@ class DruidServiceAdvisor(service_advisor.ServiceAdvisor):
                 (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = DruidRecommender()
-    recommender.recommendDruidConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendDruidConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
 
 
@@ -152,7 +152,7 @@ class DruidRecommender(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
 
-  def recommendDruidConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendDruidConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
 
       # druid is not in list of services to be installed
       if 'druid-common' not in services['configurations']:
@@ -313,11 +313,11 @@ class DruidValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(DruidValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("druid-env", self.validateDruidEnvConfigurationsFromHDP30),
-                       ("druid-historical", self.validateDruidHistoricalConfigurationsFromHDP30),
-                       ("druid-broker", self.validateDruidBrokerConfigurationsFromHDP30)]
+    self.validators = [("druid-env", self.validateDruidEnvConfigurationsFromJDP30),
+                       ("druid-historical", self.validateDruidHistoricalConfigurationsFromJDP30),
+                       ("druid-broker", self.validateDruidBrokerConfigurationsFromJDP30)]
 
-  def validateDruidEnvConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateDruidEnvConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
       validationItems = []
       #  Minimum Direct memory Validation
       envProperties = services['configurations']['druid-env']['properties']
@@ -337,7 +337,7 @@ class DruidValidator(service_advisor.ServiceAdvisor):
                    })
       return self.toConfigurationValidationProblems(validationItems, "druid-env")
 
-  def validateDruidHistoricalConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateDruidHistoricalConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
       validationItems = [
           {"config-name": "druid.processing.numThreads",
            "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults,
@@ -345,7 +345,7 @@ class DruidValidator(service_advisor.ServiceAdvisor):
       ]
       return self.toConfigurationValidationProblems(validationItems, "druid-historical")
 
-  def validateDruidBrokerConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateDruidBrokerConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
         validationItems = [
             {"config-name": "druid.processing.numThreads",
              "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults,

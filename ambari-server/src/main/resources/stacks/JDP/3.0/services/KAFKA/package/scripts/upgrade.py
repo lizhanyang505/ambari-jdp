@@ -29,7 +29,7 @@ from resource_management.core.logger import Logger
 def run_migration(env, upgrade_type):
   """
   If the acl migration script is present, then run it for either upgrade or downgrade.
-  That script was introduced in HDP 2.3.4.0 and requires stopping all Kafka brokers first.
+  That script was introduced in JDP 2.3.4.0 and requires stopping all Kafka brokers first.
   Requires configs to be present.
   :param env: Environment.
   :param upgrade_type: "rolling" or "nonrolling

@@ -123,12 +123,12 @@ class HBASEServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = HBASERecommender()
-    recommender.recommendHbaseConfigurationsFromHDP206(configurations, clusterData, services, hosts)
-    recommender.recommendHBASEConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendHBASEConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendHBASEConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-    recommender.recommendHBASEConfigurationsFromHDP30(configurations, clusterData, services, hosts)
-    recommender.recommendHBASEConfigurationsFromHDP301(configurations, clusterData, services, hosts)
+    recommender.recommendHbaseConfigurationsFromJDP206(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromJDP26(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromJDP30(configurations, clusterData, services, hosts)
+    recommender.recommendHBASEConfigurationsFromJDP301(configurations, clusterData, services, hosts)
     recommender.recommendHBASEConfigurationsForKerberos(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationRecommendationsForKerberos(self, configurations, clusterData, services, hosts):
@@ -168,7 +168,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     self.as_super.__init__(*args, **kwargs)
 
 
-  def recommendHbaseConfigurationsFromHDP206(self, configurations, clusterData, services, hosts):
+  def recommendHbaseConfigurationsFromJDP206(self, configurations, clusterData, services, hosts):
     # recommendations for HBase env config
 
     # If cluster size is < 100, hbase master heap = 2G
@@ -225,7 +225,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     else:
       return False
 
-  def recommendHBASEConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendHBASEConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
 
     hmaster_host = self.getHostWithComponent("HBASE", "HBASE_MASTER", services, hosts)
@@ -312,7 +312,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
         putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
 
-  def recommendHBASEConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendHBASEConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
     putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
@@ -363,7 +363,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
 
 
-  def recommendHBASEConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendHBASEConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     if 'hbase-env' in services['configurations'] and 'hbase_user' in services['configurations']['hbase-env']['properties']:
       hbase_user = services['configurations']['hbase-env']['properties']['hbase_user']
     else:
@@ -379,7 +379,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
       self.logger.info("Not setting Hbase Repo user for Ranger.")
 
 
-  def recommendHBASEConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendHBASEConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     # Hbase-hook configurations for Atlas
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     hbase_atlas_hook_property = 'hbase.coprocessor.master.classes'
@@ -428,7 +428,7 @@ class HBASERecommender(service_advisor.ServiceAdvisor):
     hbase_master_coprocessor_value = '' if len(hbase_master_coprocessor_list) == 0 else ",".join(hbase_master_coprocessor_list)
     putHbaseSiteProperty(hbase_atlas_hook_property,hbase_master_coprocessor_value)
 
-  def recommendHBASEConfigurationsFromHDP301(self, configurations, clusterData, services, hosts):
+  def recommendHBASEConfigurationsFromJDP301(self, configurations, clusterData, services, hosts):
     # Setters
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
@@ -687,14 +687,14 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(HBASEValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("hbase-env", self.validateHbaseEnvConfigurationsFromHDP206),
-                       ("hbase-site", self.validateHBASEConfigurationsFromHDP22),
-                       ("hbase-env", self.validateHBASEEnvConfigurationsFromHDP22),
-                       ("ranger-hbase-plugin-properties", self.validateHBASERangerPluginConfigurationsFromHDP22),
-                       ("hbase-site", self.validateHBASEConfigurationsFromHDP23)]
+    self.validators = [("hbase-env", self.validateHbaseEnvConfigurationsFromJDP206),
+                       ("hbase-site", self.validateHBASEConfigurationsFromJDP22),
+                       ("hbase-env", self.validateHBASEEnvConfigurationsFromJDP22),
+                       ("ranger-hbase-plugin-properties", self.validateHBASERangerPluginConfigurationsFromJDP22),
+                       ("hbase-site", self.validateHBASEConfigurationsFromJDP23)]
 
 
-  def validateHbaseEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHbaseEnvConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = self.getSiteProperties(configurations, "hbase-site")
     validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
                         {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')},
@@ -709,7 +709,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
       pass
 
 
-  def validateHBASEConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHBASEConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = properties
     validationItems = []
 
@@ -767,7 +767,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 
-  def validateHBASEEnvConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHBASEEnvConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_env = properties
     validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
                         {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
@@ -782,7 +782,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
-  def validateHBASERangerPluginConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHBASERangerPluginConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ranger_plugin_properties = self.getSiteProperties(configurations, "ranger-hbase-plugin-properties")
@@ -797,7 +797,7 @@ class HBASEValidator(service_advisor.ServiceAdvisor):
                                   "ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled must correspond ranger-env/ranger-hbase-plugin-enabled")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-hbase-plugin-properties")
 
-  def validateHBASEConfigurationsFromHDP23(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHBASEConfigurationsFromJDP23(self, properties, recommendedDefaults, configurations, services, hosts):
     hbase_site = properties
     validationItems = []
 

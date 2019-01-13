@@ -45,7 +45,7 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     import params
     env.set_params(params)
 
-    # on HDP1 this file is different
+    # on JDP1 this file is different
     prepare_hdfs_file_name = 'prepareOozieHdfsDirectories.sh'
     smoke_test_file_name = 'oozieSmoke2.sh'
 

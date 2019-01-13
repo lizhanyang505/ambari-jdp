@@ -392,7 +392,7 @@ def set_up_zkfc_security(params):
   """ Sets up security for accessing zookeper on secure clusters """
 
   if params.stack_supports_zk_security is False:
-    Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for HDP 2.6 and above.")
+    Logger.info("Skipping setting up secure ZNode ACL for HFDS as it's supported only for JDP 2.6 and above.")
     return
 
   # check if the namenode is HA

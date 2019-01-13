@@ -19,7 +19,7 @@
  */
 -->
 <configuration supports_final="true">
-  <!-- These configs were inherited from HDP 2.2 -->
+  <!-- These configs were inherited from JDP 2.2 -->
   <property>
     <name>policy_user</name>
     <value>ambari-qa</value>

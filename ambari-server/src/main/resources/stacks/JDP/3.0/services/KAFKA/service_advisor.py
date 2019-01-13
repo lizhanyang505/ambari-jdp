@@ -121,10 +121,10 @@ class KafkaServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = KafkaRecommender()
-    recommender.recommendKafkaConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendKAFKAConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendKAFKAConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-    recommender.recommendKAFKAConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendKafkaConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+    recommender.recommendKAFKAConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendKAFKAConfigurationsFromJDP26(configurations, clusterData, services, hosts)
+    recommender.recommendKAFKAConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
     """
@@ -181,14 +181,14 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
 
 
 
-  def recommendKafkaConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendKafkaConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     kafka_mounts = [
       ("log.dirs", "KAFKA_BROKER", "/kafka-logs", "multi")
     ]
 
     self.updateMountProperties("kafka-broker", kafka_mounts, configurations, services, hosts)
 
-  def recommendKAFKAConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendKAFKAConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     kafka_broker = self.getServicesSiteProperties(services, "kafka-broker")
@@ -320,7 +320,7 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
     except KeyError as e:
       self.logger.info('Cannot replace PLAINTEXT to SASL_PLAINTEXT in listeners. KeyError: %s' % e)
 
-  def recommendKAFKAConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendKAFKAConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     if 'kafka-env' in services['configurations'] and 'kafka_user' in services['configurations']['kafka-env']['properties']:
       kafka_user = services['configurations']['kafka-env']['properties']['kafka_user']
     else:
@@ -340,7 +340,7 @@ class KafkaRecommender(service_advisor.ServiceAdvisor):
     else:
       self.logger.info("Not setting Kafka Repo user for Ranger.")
 
-  def recommendKAFKAConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+  def recommendKAFKAConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
     number_services = len(services['services'])
     for each_service in range(0, number_services):
       if services['services'][each_service]['components'][0]['StackServiceComponents']['service_name'] == 'KAFKA':
@@ -360,11 +360,11 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(KafkaValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("ranger-kafka-plugin-properties", self.validateKafkaRangerPluginConfigurationsFromHDP22),
-                       ("kafka-broker", self.validateKAFKAConfigurationsFromHDP23),
-                       ("kafka-broker", self.validateKAFKAConfigurationsFromHDP30)]
+    self.validators = [("ranger-kafka-plugin-properties", self.validateKafkaRangerPluginConfigurationsFromJDP22),
+                       ("kafka-broker", self.validateKAFKAConfigurationsFromJDP23),
+                       ("kafka-broker", self.validateKAFKAConfigurationsFromJDP30)]
 
-  def validateKafkaRangerPluginConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateKafkaRangerPluginConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     ranger_plugin_properties = self.getSiteProperties(configurations, "ranger-kafka-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
@@ -386,7 +386,7 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "ranger-kafka-plugin-properties")
 
 
-  def validateKAFKAConfigurationsFromHDP23(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateKAFKAConfigurationsFromJDP23(self, properties, recommendedDefaults, configurations, services, hosts):
     kafka_broker = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -429,7 +429,7 @@ class KafkaValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
-  def validateKAFKAConfigurationsFromHDP30(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateKAFKAConfigurationsFromJDP30(self, properties, recommendedDefaults, configurations, services, hosts):
     kafka_broker = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

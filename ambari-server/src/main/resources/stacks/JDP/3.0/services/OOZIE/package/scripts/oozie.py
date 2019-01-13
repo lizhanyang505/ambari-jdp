@@ -235,7 +235,7 @@ def get_oozie_ext_zip_source_paths(upgrade_type, params):
   # Default to /usr/share/$TARGETSTACK-oozie/ext-2.2.zip
   paths = []
   source_ext_js_path = params.ext_js_path
-  # Preferred location used by HDP and BigInsights 4.2.5
+  # Preferred location used by JDP and BigInsights 4.2.5
   if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE:
     source_ext_js_path = "/usr/share/" + params.source_stack_name.upper() + "-oozie/" + params.ext_js_file
   paths.append(source_ext_js_path)
@@ -283,7 +283,7 @@ def oozie_server_specific(upgrade_type):
   source_ext_zip_paths = get_oozie_ext_zip_source_paths(upgrade_type, params)
 
   # Copy the first oozie ext-2.2.zip file that is found.
-  # This uses a list to handle the cases when migrating from some versions of BigInsights to HDP.
+  # This uses a list to handle the cases when migrating from some versions of BigInsights to JDP.
   if source_ext_zip_paths is not None:
     for source_ext_zip_path in source_ext_zip_paths:
       if os.path.isfile(source_ext_zip_path):

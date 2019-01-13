@@ -82,10 +82,10 @@ class UiServerDefault(UiServer):
   def link_metrics_sink_jar(self):
     import params
     # Add storm metrics reporter JAR to storm-ui-server classpath.
-    # Remove symlinks. They can be there, if you doing upgrade from HDP < 2.2 to HDP >= 2.2
+    # Remove symlinks. They can be there, if you doing upgrade from JDP < 2.2 to JDP >= 2.2
     Link(format("{storm_lib_dir}/ambari-metrics-storm-sink.jar"),
          action="delete")
-    # On old HDP 2.1 versions, this symlink may also exist and break EU to newer versions
+    # On old JDP 2.1 versions, this symlink may also exist and break EU to newer versions
     Link("/usr/lib/storm/lib/ambari-metrics-storm-sink.jar", action="delete")
 
     if check_stack_feature(StackFeature.STORM_METRICS_APACHE_CLASSES, params.version_for_stack_feature_checks):

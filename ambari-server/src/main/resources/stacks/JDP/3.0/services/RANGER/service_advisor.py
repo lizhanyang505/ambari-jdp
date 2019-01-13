@@ -124,13 +124,13 @@ class RangerServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = RangerRecommender()
-    recommender.recommendRangerConfigurationsFromHDP206(configurations, clusterData, services, hosts)
-    recommender.recommendRangerConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendRangerConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendRangerConfigurationsFromHDP25(configurations, clusterData, services, hosts)
-    recommender.recommendRangerConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendRangerConfigurationsFromJDP206(configurations, clusterData, services, hosts)
+    recommender.recommendRangerConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+    recommender.recommendRangerConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendRangerConfigurationsFromJDP25(configurations, clusterData, services, hosts)
+    recommender.recommendRangerConfigurationsFromJDP26(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsForSSO(configurations, clusterData, services, hosts)
-    recommender.recommendConfigurationsForHDP30(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsForJDP30(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsForLDAP(configurations, clusterData, services, hosts)
 
 
@@ -189,7 +189,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendRangerConfigurationsFromHDP206(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP206(self, configurations, clusterData, services, hosts):
 
     putRangerAdminProperty = self.putProperty(configurations, "admin-properties", services)
 
@@ -198,7 +198,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     ranger_admin_host = 'localhost'
     port = '6080'
 
-    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
+    # Check if http is disabled. For JDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
     # For Ranger-0.4.0 this can be checked in ranger-site/http.enabled
     if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
           and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
@@ -293,7 +293,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
                   rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
                 putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
 
-  def recommendRangerConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env")
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
     security_enabled = cluster_env is not None and "security_enabled" in cluster_env and \
@@ -350,7 +350,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
         if component_config_type in services["configurations"] and component_config_property in services["configurations"][component_config_type]["properties"]:
           putRangerSecurityProperty(component_config_property, policymgr_external_url)
 
-  def recommendRangerConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
@@ -498,7 +498,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     # recommendation for ranger url for ranger-supported plugins
     self.recommendRangerUrlConfigurations(configurations, services, required_services)
 
-  def recommendRangerConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP25(self, configurations, clusterData, services, hosts):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     has_ranger_tagsync = False
 
@@ -668,7 +668,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
     # recommendation for ranger url for ranger-supported plugins
     self.recommendRangerUrlConfigurations(configurations, services, required_services)
 
-  def recommendRangerConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
 
     putRangerUgsyncSite = self.putProperty(configurations, 'ranger-ugsync-site', services)
 
@@ -701,7 +701,7 @@ class RangerRecommender(service_advisor.ServiceAdvisor):
         putRangerAdminSiteProperty('ranger.sso.enabled', "false")
 
 
-  def recommendConfigurationsForHDP30(self, configurations, clusterData, services, hosts):
+  def recommendConfigurationsForJDP30(self, configurations, clusterData, services, hosts):
     putRangerAdminProperty = self.putProperty(configurations, 'ranger-admin-site', services)
 
     enable_usersync_ldap_starttls = False
@@ -755,14 +755,14 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(RangerValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("ranger-env", self.validateRangerConfigurationsEnvFromHDP22),
-                       ("admin-properties", self.validateRangerAdminConfigurationsFromHDP23),
-                       ("ranger-env", self.validateRangerConfigurationsEnvFromHDP23),
-                       ("ranger-tagsync-site", self.validateRangerTagsyncConfigurationsFromHDP25),
-                       ("ranger-ugsync-site", self.validateRangerUsersyncConfigurationsFromHDP26),
+    self.validators = [("ranger-env", self.validateRangerConfigurationsEnvFromJDP22),
+                       ("admin-properties", self.validateRangerAdminConfigurationsFromJDP23),
+                       ("ranger-env", self.validateRangerConfigurationsEnvFromJDP23),
+                       ("ranger-tagsync-site", self.validateRangerTagsyncConfigurationsFromJDP25),
+                       ("ranger-ugsync-site", self.validateRangerUsersyncConfigurationsFromJDP26),
                        ("ranger-env", self.validateRangerPasswordConfigurations)]
 
-  def validateRangerConfigurationsEnvFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerConfigurationsEnvFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_env_properties = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -771,7 +771,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
                               "item": self.getWarnItem("Ranger Storm plugin should not be enabled in non-kerberos environment.")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-env")
 
-  def validateRangerAdminConfigurationsFromHDP23(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerAdminConfigurationsFromJDP23(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_site = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -782,7 +782,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
                                 'item':self.getWarnItem('Ranger External URL should not contain trailing slash "/"')})
     return self.toConfigurationValidationProblems(validationItems,'admin-properties')
 
-  def validateRangerConfigurationsEnvFromHDP23(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerConfigurationsEnvFromJDP23(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_env_properties = properties
     validationItems = []
     security_enabled = RangerServiceAdvisor.isKerberosEnabled(services, configurations)
@@ -795,7 +795,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
     validationProblems = self.toConfigurationValidationProblems(validationItems, "ranger-env")
     return validationProblems
 
-  def validateRangerTagsyncConfigurationsFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerTagsyncConfigurationsFromJDP25(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_tagsync_properties = properties
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -812,7 +812,7 @@ class RangerValidator(service_advisor.ServiceAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ranger-tagsync-site")
 
-  def validateRangerUsersyncConfigurationsFromHDP26(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerUsersyncConfigurationsFromJDP26(self, properties, recommendedDefaults, configurations, services, hosts):
     ranger_usersync_properties = properties
     validationItems = []
 

@@ -126,8 +126,8 @@ class Spark2ServiceAdvisor(service_advisor.ServiceAdvisor):
     #            (self.__class__.__name__, inspect.stack()[0][3]))
 
     recommender = Spark2Recommender()
-    recommender.recommendSpark2ConfigurationsFromHDP25(configurations, clusterData, services, hosts)
-    recommender.recommendSPARK2ConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendSpark2ConfigurationsFromJDP25(configurations, clusterData, services, hosts)
+    recommender.recommendSPARK2ConfigurationsFromJDP26(configurations, clusterData, services, hosts)
 
 
 
@@ -181,7 +181,7 @@ class Spark2Recommender(service_advisor.ServiceAdvisor):
     self.as_super = super(Spark2Recommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendSpark2ConfigurationsFromHDP25(self, configurations, clusterData, services, hosts):
+  def recommendSpark2ConfigurationsFromJDP25(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
     :type clusterData dict
@@ -200,7 +200,7 @@ class Spark2Recommender(service_advisor.ServiceAdvisor):
       putSparkThriftSparkConf("spark.yarn.queue", spark_thrift_queue)
 
 
-  def recommendSPARK2ConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendSPARK2ConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     """
     :type configurations dict
     :type clusterData dict
@@ -270,11 +270,11 @@ class Spark2Validator(service_advisor.ServiceAdvisor):
     self.as_super = super(Spark2Validator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("spark2-defaults", self.validateSpark2DefaultsFromHDP25),
-                       ("spark2-thrift-sparkconf", self.validateSpark2ThriftSparkConfFromHDP25)]
+    self.validators = [("spark2-defaults", self.validateSpark2DefaultsFromJDP25),
+                       ("spark2-thrift-sparkconf", self.validateSpark2ThriftSparkConfFromJDP25)]
 
 
-  def validateSpark2DefaultsFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateSpark2DefaultsFromJDP25(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [
       {
         "config-name": 'spark.yarn.queue',
@@ -284,7 +284,7 @@ class Spark2Validator(service_advisor.ServiceAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "spark2-defaults")
 
 
-  def validateSpark2ThriftSparkConfFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateSpark2ThriftSparkConfFromJDP25(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [
       {
         "config-name": 'spark.yarn.queue',

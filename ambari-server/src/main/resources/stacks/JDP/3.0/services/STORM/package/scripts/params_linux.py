@@ -101,7 +101,7 @@ storm_zookeeper_servers = config['configurations']['storm-site']['storm.zookeepe
 storm_zookeeper_port = config['configurations']['storm-site']['storm.zookeeper.port']
 storm_logs_supported = config['configurations']['storm-env']['storm_logs_supported']
 
-# nimbus.seeds is supported in HDP 2.3.0.0 and higher
+# nimbus.seeds is supported in JDP 2.3.0.0 and higher
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
 nimbus_host = default('/configurations/storm-site/nimbus.host', None)
 nimbus_seeds = default('/configurations/storm-site/nimbus.seeds', None)
@@ -239,7 +239,7 @@ enable_atlas_hook = default('/configurations/storm-env/storm.atlas.hook', False)
 atlas_hook_filename = default('/configurations/atlas-env/metadata_conf_file', 'atlas-application.properties')
 
 if enable_atlas_hook:
-  # Only append /etc/atlas/conf to classpath if on HDP 2.4.*
+  # Only append /etc/atlas/conf to classpath if on JDP 2.4.*
   if check_stack_feature(StackFeature.ATLAS_CONF_DIR_IN_PATH, stack_version_formatted):
     atlas_conf_dir = format('{stack_root}/current/atlas-server/conf')
     jar_jvm_opts += '-Datlas.conf=' + atlas_conf_dir

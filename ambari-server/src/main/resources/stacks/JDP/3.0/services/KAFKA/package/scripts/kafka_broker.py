@@ -51,7 +51,7 @@ class KafkaBroker(Script):
     if params.version and check_stack_feature(StackFeature.ROLLING_UPGRADE, params.version):
       stack_select.select_packages(params.version)
 
-    # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary.
+    # This is extremely important since it should only be called if crossing the JDP 2.3.4.0 boundary.
     if params.version and params.upgrade_direction:
       src_version = dst_version = None
       if params.upgrade_direction == Direction.UPGRADE:

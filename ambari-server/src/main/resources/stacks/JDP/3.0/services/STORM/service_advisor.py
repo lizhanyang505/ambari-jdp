@@ -121,12 +121,12 @@ class StormServiceAdvisor(service_advisor.ServiceAdvisor):
         #            (self.__class__.__name__, inspect.stack()[0][3]))
 
         recommender = StormRecommender()
-        recommender.recommendStormConfigurationsFromHDP206(configurations, clusterData, services, hosts)
-        recommender.recommendStormConfigurationsFromHDP21(configurations, clusterData, services, hosts)
-        recommender.recommendStormConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-        recommender.recommendStormConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-        recommender.recommendStormConfigurationsFromHDP26(configurations, clusterData, services, hosts)
-        recommender.recommendStormConfigurationsFromHDP30(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP206(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP21(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP26(configurations, clusterData, services, hosts)
+        recommender.recommendStormConfigurationsFromJDP30(configurations, clusterData, services, hosts)
 
     def getServiceConfigurationsValidationItems(self, configurations, recommendedDefaults, services, hosts):
         """
@@ -197,14 +197,14 @@ class StormRecommender(service_advisor.ServiceAdvisor):
             updated_yaml_string = "[" + ",".join(klass_list) + "]"
         return updated_yaml_string
 
-    def recommendStormConfigurationsFromHDP206(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP206(self, configurations, clusterData, services, hosts):
         putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
         servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
         # Storm AMS integration
         if 'AMBARI_METRICS' in servicesList:
             putStormSiteProperty('metrics.reporter.register', 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter')
 
-    def recommendStormConfigurationsFromHDP21(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP21(self, configurations, clusterData, services, hosts):
         storm_mounts = [
             ("storm.local.dir", ["NODEMANAGER", "NIMBUS"], "/hadoop/storm", "single")
         ]
@@ -212,7 +212,7 @@ class StormRecommender(service_advisor.ServiceAdvisor):
         self.updateMountProperties("storm-site", storm_mounts, configurations, services, hosts)
 
 
-    def recommendStormConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
         putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
         putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
         storm_site = self.getServicesSiteProperties(services, "storm-site")
@@ -249,7 +249,7 @@ class StormRecommender(service_advisor.ServiceAdvisor):
             putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
 
 
-    def recommendStormConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
         putStormStartupProperty = self.putProperty(configurations, "storm-site", services)
         putStormEnvProperty = self.putProperty(configurations, "storm-env", services)
         servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -298,7 +298,7 @@ class StormRecommender(service_advisor.ServiceAdvisor):
                 putStormStartupPropertyAttribute = self.putPropertyAttribute(configurations, "storm-site")
                 putStormStartupPropertyAttribute(notifier_plugin_property, 'delete', 'true')
 
-    def recommendStormConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
         """
          In HDF-2.6.1 we introduced a new way of doing Auto Credentials with services such as
          HDFS, HIVE, HBASE. This method will update the required configs for autocreds if the users installs
@@ -343,7 +343,7 @@ class StormRecommender(service_advisor.ServiceAdvisor):
             putStormSiteProperty("nimbus.credential.renewers.freq.secs", "82800")
         pass
 
-    def recommendStormConfigurationsFromHDP30(self, configurations, clusterData, services, hosts):
+    def recommendStormConfigurationsFromJDP30(self, configurations, clusterData, services, hosts):
 
         storm_site = self.getServicesSiteProperties(services, "storm-site")
         security_enabled = StormServiceAdvisor.isKerberosEnabled(services, configurations)
@@ -383,10 +383,10 @@ class StormValidator(service_advisor.ServiceAdvisor):
         self.as_super = super(StormValidator, self)
         self.as_super.__init__(*args, **kwargs)
 
-        self.validators = [("storm-site", self.validateStormConfigurationsFromHDP25),
-                           ("ranger-storm-plugin-properties", self.validateStormConfigurationsFromHDP22)]
+        self.validators = [("storm-site", self.validateStormConfigurationsFromJDP25),
+                           ("ranger-storm-plugin-properties", self.validateStormConfigurationsFromJDP22)]
 
-    def validateStormConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+    def validateStormConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
         validationItems = []
         servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
         # Storm AMS integration
@@ -401,7 +401,7 @@ class StormValidator(service_advisor.ServiceAdvisor):
 
 
 
-    def validateStormConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+    def validateStormConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
         validationItems = []
         ranger_plugin_properties = self.getSiteProperties(configurations, "ranger-storm-plugin-properties")
         ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
@@ -422,8 +422,8 @@ class StormValidator(service_advisor.ServiceAdvisor):
 
         return self.toConfigurationValidationProblems(validationItems, "ranger-storm-plugin-properties")
 
-    def validateStormConfigurationsFromHDP25(self, properties, recommendedDefaults, configurations, services, hosts):
-        self.validateStormConfigurationsFromHDP206(properties, recommendedDefaults, configurations, services, hosts)
+    def validateStormConfigurationsFromJDP25(self, properties, recommendedDefaults, configurations, services, hosts):
+        self.validateStormConfigurationsFromJDP206(properties, recommendedDefaults, configurations, services, hosts)
         validationItems = []
 
         servicesList = [service["StackServices"]["service_name"] for service in services["services"]]

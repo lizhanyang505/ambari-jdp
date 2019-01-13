@@ -161,7 +161,7 @@ if heap_dump_enabled:
 # Hive Interactive related paths
 hive_interactive_var_lib = '/var/lib/hive2'
 
-# These tar folders were used in previous stack versions, e.g., HDP 2.1
+# These tar folders were used in previous stack versions, e.g., JDP 2.1
 hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 
 hive_metastore_site_supported = False

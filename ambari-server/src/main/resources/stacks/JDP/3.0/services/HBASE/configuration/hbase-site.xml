@@ -20,7 +20,7 @@
  */
 -->
 <configuration supports_final="true">
-  <!-- Inherited from HBase in HDP 2.0.6 -->
+  <!-- Inherited from HBase in JDP 2.0.6 -->
   <property>
     <name>hbase.rootdir</name>
     <display-name>HBase root directory</display-name>
@@ -592,7 +592,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.2 -->
+  <!-- Inherited from HBase in JDP 2.2 -->
   <property>
     <name>hbase.bulkload.staging.dir</name>
     <display-name>HBase Bulkload Staging directory</display-name>
@@ -763,7 +763,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.3 -->
+  <!-- Inherited from HBase in JDP 2.3 -->
   <property>
     <name>hbase.regionserver.port</name>
     <value>16020</value>
@@ -771,7 +771,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.5 -->
+  <!-- Inherited from HBase in JDP 2.5 -->
   <property>
     <name>hbase.master.ui.readonly</name>
     <value>false</value>
@@ -783,7 +783,7 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.6 -->
+  <!-- Inherited from HBase in JDP 2.6 -->
   <property>
     <name>hbase.regionserver.executor.openregion.threads</name>
     <value>20</value>

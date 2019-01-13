@@ -32,28 +32,28 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class HDP31RANGERServiceAdvisor(service_advisor.RangerServiceAdvisor):
+class JDP31RANGERServiceAdvisor(service_advisor.RangerServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HDP31RANGERServiceAdvisor, self)
+    self.as_super = super(JDP31RANGERServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-    super(HDP31RANGERServiceAdvisor, self).getServiceConfigurationRecommendations(configurations, clusterData, services, hosts)
+    super(JDP31RANGERServiceAdvisor, self).getServiceConfigurationRecommendations(configurations, clusterData, services, hosts)
 
-    recommender = HDP31RangerRecommender()
-    recommender.recommendRangerConfigurationsFromHDP31(configurations, clusterData, services, hosts)
+    recommender = JDP31RangerRecommender()
+    recommender.recommendRangerConfigurationsFromJDP31(configurations, clusterData, services, hosts)
 
-class HDP31RangerRecommender(service_advisor.ServiceAdvisor):
+class JDP31RangerRecommender(service_advisor.ServiceAdvisor):
   """
   Ranger Recommender suggests properties when adding the service for the first time or modifying configs via the UI.
   """
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HDP31RangerRecommender, self)
+    self.as_super = super(JDP31RangerRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendRangerConfigurationsFromHDP31(self, configurations, clusterData, services, hosts):
+  def recommendRangerConfigurationsFromJDP31(self, configurations, clusterData, services, hosts):
 
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerAdminAttribute = self.putPropertyAttribute(configurations, "ranger-admin-site")

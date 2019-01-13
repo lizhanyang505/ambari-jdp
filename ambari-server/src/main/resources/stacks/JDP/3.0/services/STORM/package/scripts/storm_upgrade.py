@@ -31,13 +31,13 @@ from resource_management.libraries.functions.format import format
 
 class StormUpgrade(Script):
   """
-  Applies to Rolling/Express Upgrade from HDP 2.1 or 2.2 to 2.3 or higher.
+  Applies to Rolling/Express Upgrade from JDP 2.1 or 2.2 to 2.3 or higher.
 
   Requirements: Needs to run from a host with ZooKeeper Client.
 
   This class helps perform some of the upgrade tasks needed for Storm during
   a Rolling or Express upgrade. Storm writes data to disk locally and to ZooKeeper.
-  If any HDP 2.1 or 2.2 bits exist in these directories when an HDP 2.3 instance
+  If any JDP 2.1 or 2.2 bits exist in these directories when an JDP 2.3 instance
   starts up, it will fail to start properly. Because the upgrade framework in
   Ambari doesn't yet have a mechanism to say "stop all" before starting to
   upgrade each component, we need to rely on a Storm trick to bring down

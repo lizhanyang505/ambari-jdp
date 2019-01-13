@@ -20,7 +20,7 @@
  */
 -->
 <configuration supports_adding_forbidden="true">
-  <!-- Inherited from HBase in HDP 2.0.6. -->
+  <!-- Inherited from HBase in JDP 2.0.6. -->
   <property>
     <name>hbase_log_dir</name>
     <value>/var/log/hbase</value>
@@ -261,7 +261,7 @@ export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS {% if hbase_max_direct_memory_size 
     <on-ambari-upgrade add="false"/>
   </property>
 
-  <!-- Inherited from HBase in HDP 2.2 -->
+  <!-- Inherited from HBase in JDP 2.2 -->
   <property>
     <name>hbase_max_direct_memory_size</name>
     <value/>

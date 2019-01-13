@@ -75,7 +75,7 @@ class JobHistoryServer(Script):
       Logger.info("Executing Spark2 Job History Server Stack Upgrade pre-restart")
       stack_select.select_packages(params.version)
 
-      # Spark 1.3.1.2.3, and higher, which was included in HDP 2.3, does not have a dependency on Tez, so it does not
+      # Spark 1.3.1.2.3, and higher, which was included in JDP 2.3, does not have a dependency on Tez, so it does not
       # need to copy the tarball, otherwise, copy it.
       if params.version and check_stack_feature(StackFeature.TEZ_FOR_SPARK, params.version):
         resource_created = copy_to_hdfs(

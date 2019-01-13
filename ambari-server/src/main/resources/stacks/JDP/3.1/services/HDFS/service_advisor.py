@@ -32,13 +32,13 @@ except Exception as e:
   traceback.print_exc()
   print "Failed to load parent"
 
-class HDP31HDFSServiceAdvisor(service_advisor.HDFSServiceAdvisor):
+class JDP31HDFSServiceAdvisor(service_advisor.HDFSServiceAdvisor):
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HDP31HDFSServiceAdvisor, self)
+    self.as_super = super(JDP31HDFSServiceAdvisor, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.initialize_logger("HDP31HDFSServiceAdvisor")
+    self.initialize_logger("JDP31HDFSServiceAdvisor")
 
     # Always call these methods
     self.modifyMastersWithMultipleInstances()
@@ -123,21 +123,21 @@ class HDP31HDFSServiceAdvisor(service_advisor.HDFSServiceAdvisor):
     return self.getServiceComponentCardinalityValidations(services, hosts, "HDFS")
 
   def getServiceConfigurationRecommendations(self, configurations, clusterData, services, hosts):
-    super(HDP31HDFSServiceAdvisor, self).getServiceConfigurationRecommendations(configurations, clusterData, services, hosts)
+    super(JDP31HDFSServiceAdvisor, self).getServiceConfigurationRecommendations(configurations, clusterData, services, hosts)
 
-    recommender = HDP31HDFSRecommender()
-    recommender.recommendHDFSConfigurationsFromHDP31(configurations, clusterData, services, hosts)
+    recommender = JDP31HDFSRecommender()
+    recommender.recommendHDFSConfigurationsFromJDP31(configurations, clusterData, services, hosts)
 
-class HDP31HDFSRecommender(service_advisor.ServiceAdvisor):
+class JDP31HDFSRecommender(service_advisor.ServiceAdvisor):
   """
   HDFS Recommender suggests properties when adding the service for the first time or modifying configs via the UI.
   """
 
   def __init__(self, *args, **kwargs):
-    self.as_super = super(HDP31HDFSRecommender, self)
+    self.as_super = super(JDP31HDFSRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendHDFSConfigurationsFromHDP31(self, configurations, clusterData, services, hosts):
+  def recommendHDFSConfigurationsFromJDP31(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
 
     ranger_hdfs_plugin_enabled = False

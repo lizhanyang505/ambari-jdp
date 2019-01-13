@@ -23,7 +23,7 @@
   <!--
   These two security properties will only be read if the cluster is Kerberized, but ok to add them even without Kerberos.
   It's important to have at least one property in this config file so it gets added while merging configs during EU/RU
-  from an earlier stack to HDP 2.5+.
+  from an earlier stack to JDP 2.5+.
   Also, it allows a fresh install with Sqoop to expose this config type in the UI.
   -->
   <property>

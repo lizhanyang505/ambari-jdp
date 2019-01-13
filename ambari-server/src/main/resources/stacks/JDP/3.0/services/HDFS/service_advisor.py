@@ -139,10 +139,10 @@ class HDFSServiceAdvisor(service_advisor.ServiceAdvisor):
 
     # Due to the existing stack inheritance, make it clear where each calculation came from.
     recommender = HDFSRecommender()
-    recommender.recommendConfigurationsFromHDP206(configurations, clusterData, services, hosts)
-    recommender.recommendConfigurationsFromHDP22(configurations, clusterData, services, hosts)
-    recommender.recommendConfigurationsFromHDP23(configurations, clusterData, services, hosts)
-    recommender.recommendConfigurationsFromHDP26(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromJDP206(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromJDP22(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromJDP23(configurations, clusterData, services, hosts)
+    recommender.recommendConfigurationsFromJDP26(configurations, clusterData, services, hosts)
     recommender.recommendConfigurationsForSSO(configurations, clusterData, services, hosts)
 
   def getServiceConfigurationRecommendationsForSSO(self, configurations, clusterData, services, hosts):
@@ -180,9 +180,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     self.as_super = super(HDFSRecommender, self)
     self.as_super.__init__(*args, **kwargs)
 
-  def recommendConfigurationsFromHDP206(self, configurations, clusterData, services, hosts):
+  def recommendConfigurationsFromJDP206(self, configurations, clusterData, services, hosts):
     """
-    Recommend configurations for this service based on HDP 2.0.6.
+    Recommend configurations for this service based on JDP 2.0.6.
     """
     self.logger.info("Class: %s, Method: %s. Recommending Service Configurations." %
                 (self.__class__.__name__, inspect.stack()[0][3]))
@@ -269,9 +269,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
 
-  def recommendConfigurationsFromHDP22(self, configurations, clusterData, services, hosts):
+  def recommendConfigurationsFromJDP22(self, configurations, clusterData, services, hosts):
     """
-    Recommend configurations for this service based on HDP 2.2
+    Recommend configurations for this service based on JDP 2.2
     """
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
@@ -437,9 +437,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
       rangerEnvHdfsPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hdfs-plugin-enabled"]
       putHdfsRangerPluginProperty("ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty)
 
-  def recommendConfigurationsFromHDP23(self, configurations, clusterData, services, hosts):
+  def recommendConfigurationsFromJDP23(self, configurations, clusterData, services, hosts):
     """
-    Recommend configurations for this service based on HDP 2.3.
+    Recommend configurations for this service based on JDP 2.3.
     """
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
@@ -458,9 +458,9 @@ class HDFSRecommender(service_advisor.ServiceAdvisor):
     else:
       putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
 
-  def recommendConfigurationsFromHDP26(self, configurations, clusterData, services, hosts):
+  def recommendConfigurationsFromJDP26(self, configurations, clusterData, services, hosts):
     """
-    Recommend configurations for this service based on HDP 2.6
+    Recommend configurations for this service based on JDP 2.6
     """
     if 'hadoop-env' in services['configurations'] and 'hdfs_user' in  services['configurations']['hadoop-env']['properties']:
       hdfs_user = services['configurations']['hadoop-env']['properties']['hdfs_user']
@@ -547,13 +547,13 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
     self.as_super = super(HDFSValidator, self)
     self.as_super.__init__(*args, **kwargs)
 
-    self.validators = [("hdfs-site", self.validateHDFSConfigurationsFromHDP206),
-                       ("hadoop-env", self.validateHadoopEnvConfigurationsFromHDP206),
-                       ("core-site", self.validateHDFSCoreSiteFromHDP206),
-                       ("hdfs-site", self.validateHDFSConfigurationsFromHDP22),
-                       ("hadoop-env", self.validateHadoopEnvConfigurationsFromHDP22),
-                       ("ranger-hdfs-plugin-properties", self.validateHDFSRangerPluginConfigurationsFromHDP22),
-                       ("hdfs-site", self.validateRangerAuthorizerFromHDP23)]
+    self.validators = [("hdfs-site", self.validateHDFSConfigurationsFromJDP206),
+                       ("hadoop-env", self.validateHadoopEnvConfigurationsFromJDP206),
+                       ("core-site", self.validateHDFSCoreSiteFromJDP206),
+                       ("hdfs-site", self.validateHDFSConfigurationsFromJDP22),
+                       ("hadoop-env", self.validateHadoopEnvConfigurationsFromJDP22),
+                       ("ranger-hdfs-plugin-properties", self.validateHDFSRangerPluginConfigurationsFromJDP22),
+                       ("hdfs-site", self.validateRangerAuthorizerFromJDP23)]
 
     # **********************************************************
     # Example of how to add a function that validates a certain config type.
@@ -579,9 +579,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
                             "item": self.getErrorItem("My custom message in method %s" % inspect.stack()[0][3])})
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
-  def validateHDFSConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHDFSConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.0.6; validate hdfs-site
+    This was copied from JDP 2.0.6; validate hdfs-site
     :return: A list of configuration validation problems.
     """
     clusterEnv = self.getSiteProperties(configurations, "cluster-env")
@@ -618,9 +618,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     return None
 
-  def validateHadoopEnvConfigurationsFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHadoopEnvConfigurationsFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.0.6; validate hadoop-env
+    This was copied from JDP 2.0.6; validate hadoop-env
     :return: A list of configuration validation problems.
     """
     validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
@@ -628,9 +628,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
-  def validateHDFSCoreSiteFromHDP206(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHDFSCoreSiteFromJDP206(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.0.6; validate core-site
+    This was copied from JDP 2.0.6; validate core-site
     :return: A list of configuration validation problems.
     """
     validationItems = []
@@ -688,9 +688,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
 
     return validationItems
 
-  def validateHDFSConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHDFSConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.2; validate hdfs-site
+    This was copied from JDP 2.2; validate hdfs-site
     :return: A list of configuration validation problems.
     """
     # We can not access property hadoop.security.authentication from the
@@ -823,9 +823,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
                                   )})
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
-  def validateHadoopEnvConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHadoopEnvConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.2; validate hadoop-env
+    This was copied from JDP 2.2; validate hadoop-env
     :return: A list of configuration validation problems.
     """
     validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
@@ -833,9 +833,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
 
-  def validateHDFSRangerPluginConfigurationsFromHDP22(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateHDFSRangerPluginConfigurationsFromJDP22(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.2; validate ranger-hdfs-plugin-properties
+    This was copied from JDP 2.2; validate ranger-hdfs-plugin-properties
     :return: A list of configuration validation problems.
     """
     validationItems = []
@@ -850,9 +850,9 @@ class HDFSValidator(service_advisor.ServiceAdvisor):
                                   "ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled must correspond ranger-env/ranger-hdfs-plugin-enabled")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-hdfs-plugin-properties")
 
-  def validateRangerAuthorizerFromHDP23(self, properties, recommendedDefaults, configurations, services, hosts):
+  def validateRangerAuthorizerFromJDP23(self, properties, recommendedDefaults, configurations, services, hosts):
     """
-    This was copied from HDP 2.3
+    This was copied from JDP 2.3
     If Ranger service is present and the ranger plugin is enabled, check that the provider class is correctly set.
     :return: A list of configuration validation problems.
     """

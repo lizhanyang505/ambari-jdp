@@ -20,7 +20,7 @@
  */
 -->
 <configuration>
-  <!-- This property was valid in HDP 2.3 and 2.4, but removed in HDP 2.5 -->
+  <!-- This property was valid in JDP 2.3 and 2.4, but removed in JDP 2.5 -->
   <property>
     <name>sqoop.job.data.publish.class</name>
     <on-ambari-upgrade add="true"/>
