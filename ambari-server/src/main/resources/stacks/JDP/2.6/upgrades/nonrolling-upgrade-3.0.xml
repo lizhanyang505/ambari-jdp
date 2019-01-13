@@ -19,7 +19,7 @@
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
   <target>3.0.*.*</target>
-  <target-stack>JDP-3.0</target-stack>
+  <target-stack>HDP-3.0</target-stack>
   <downgrade-allowed>false</downgrade-allowed>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
@@ -134,7 +134,7 @@
 
     <group xsi:type="cluster" name="CONVERT_HIVE_TABLES" title="Convert Hive Tables">
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Convert Hive Tables">
-        <task xsi:type="execute" hosts="any" timeout-config="upgrade.parameter.convert.hive.tables.timeout">
+        <task xsi:type="execute" hosts="any">
           <script>scripts/pre_upgrade.py</script>
           <function>convert_tables</function>
         </task>
@@ -358,7 +358,9 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Ranger Admin database on the following host(s): {{hosts.all}}.
+          <message>Before continuing, please restore the Ranger Admin database and Ranger Audit
+            database on
+            the following host(s): {{hosts.all}}.
           </message>
         </task>
       </execute-stage>
@@ -435,12 +437,12 @@
         <task xsi:type="configure" id="hdfs_fix_user_variable"/>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Convert JDP 2.6 variable naming to JDP 3.0">
-        <task xsi:type="configure" id="jdp_30_hdfs_stack_variables_update"/>
+      <execute-stage service="HDFS" component="NAMENODE" title="Convert HDP 2.6 variable naming to HDP 3.0">
+        <task xsi:type="configure" id="hdp_30_hdfs_stack_variables_update"/>
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Update HADOOP_SECURE_PID_DIR and HADOOP_SECURE_LOG_DIR">
-        <task xsi:type="configure" id="jdp_30_hdfs_secure_variables_update"/>
+        <task xsi:type="configure" id="hdp_30_hdfs_secure_variables_update"/>
       </execute-stage>
 
       <execute-stage service="HDFS" component="DATANODE" title="Enables SASL for authentication of data transfer protocol">
@@ -457,57 +459,47 @@
         <task xsi:type="configure" id="hdfs_user_agent"/>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set properties for GCS">
-        <task xsi:type="configure" id="gcs_properties" />
-      </execute-stage>
-
       <!--YARN-->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Remove invalid HADOOP_OPTS and YARN_OPTS">
-        <task xsi:type="configure" id="jdp_30_remove_invalid_hadoop_and_yarn_opts"/>
+        <task xsi:type="configure" id="hdp_30_remove_invalid_hadoop_and_yarn_opts"/>
       </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Fix Hadoop and YARN loggers">
-        <task xsi:type="configure" id="jdp_30_update_hadoop_and_yarn_loggers"/>
+        <task xsi:type="configure" id="hdp_30_update_hadoop_and_yarn_loggers"/>
       </execute-stage>
 
       <!-- adds options required if Registry DNS is added -->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Add Registry DNS OPTS">
-        <task xsi:type="configure" id="jdp_30_add_registry_dns_secure_opts"/>
+        <task xsi:type="configure" id="hdp_30_add_registry_dns_secure_opts"/>
       </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Add Secure PID and Log Directory Exports">
-        <task xsi:type="configure" id="jdp_30_add_secure_pid_and_log_dirs"/>
+        <task xsi:type="configure" id="hdp_30_add_secure_pid_and_log_dirs"/>
       </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Add Timeline Reader OPTS">
-        <task xsi:type="configure" id="jdp_30_add_timeline_reader_opts"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Create yarn-system queue based on cluster capacity">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.YarnNodeManagerCapacityCalculation">
-          <summary>Create yarn-system queue based on cluster capacity</summary>
-        </task>
+        <task xsi:type="configure" id="hdp_30_add_timeline_reader_opts"/>
       </execute-stage>
 
       <!-- Do this last to convert any variable which remained -->
-      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Convert YARN jdp 2.6 variable naming to jdp 3.0">
-        <task xsi:type="configure" id="jdp_30_yarn_stack_variables_update"/>
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Convert YARN HDP 2.6 variable naming to HDP 3.0">
+        <task xsi:type="configure" id="hdp_30_yarn_stack_variables_update"/>
       </execute-stage>
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Update YARN root logger">
-        <task xsi:type="configure" id="jdp_30_update_yarn_root_logger"/>
+        <task xsi:type="configure" id="hdp_30_update_yarn_root_logger"/>
       </execute-stage>
 
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Convert Mapreduce jdp 2.6 variable naming to jdp 3.0">
-        <task xsi:type="configure" id="jdp_30_mapred_stack_variables_update"/>
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Convert Mapreduce HDP 2.6 variable naming to HDP 3.0">
+        <task xsi:type="configure" id="hdp_30_mapred_stack_variables_update"/>
       </execute-stage>
 
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Update Mapreduce loggers">
-        <task xsi:type="configure" id="jdp_30_update_mapreduce_loggers"/>
+        <task xsi:type="configure" id="hdp_30_update_mapreduce_loggers"/>
       </execute-stage>
 
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Add DistributedShellTimelinePlugin to ATS">
-        <task xsi:type="configure" id="jdp_30_add_distributed_shell_class_to_ats" />
+        <task xsi:type="configure" id="hdp_30_add_distributed_shell_class_to_ats" />
       </execute-stage>
 
       <execute-stage service="MAPREDUCE2" component="MAPREDUCE2_CLIENT" title="Apply config changes for Mapreduce2 client">
@@ -526,14 +518,7 @@
       </execute-stage>
 
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Removing Spark classpath entries from ATS">
-        <task xsi:type="configure" id="jdp_30_remove_spark_classpaths_injections" />
-      </execute-stage>
-
-      <execute-stage service="YARN" title="Apply config changes for Timeline Reader">
-        <task xsi:type="server_action"
-              class="org.apache.ambari.server.serveraction.upgrades.FixTimelineReaderAddress">
-          <summary>Setting YARN Timeline Reader Url</summary>
-        </task>
+        <task xsi:type="configure" id="hdp_30_remove_spark_classpaths_injections" />
       </execute-stage>
 
       <execute-stage>
@@ -581,13 +566,7 @@
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Update log files and locations">
-        <task xsi:type="configure" id="jdp_30_hive_log_file" />
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER" title="Update Hive hook for DAS">
-        <task xsi:type="configure" id="jdp_3_0_config_for_hive_das_hook">
-          <summary>Update org.apache.hadoop.hive.ql.hooks.ATSHook to org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook</summary>
-        </task>
+        <task xsi:type="configure" id="hdp_30_hive_log_file" />
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update HSI hive jar path">
@@ -595,20 +574,11 @@
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update HSI log file location">
-        <task xsi:type="configure" id="jdp_30_hsi_log_file" />
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER" title="Update Hive GC JVM args">
-        <task xsi:type="configure" id="jdp_30_hs_gc_jvm_args" />
+        <task xsi:type="configure" id="hdp_30_hsi_log_file" />
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Ranger Hive Policy Rest SSL File path config">
-        <task xsi:type="configure" id="jdp_3_0_updating_ranger_hive_policy_rest_ssl_file" />
-      </execute-stage>
-
-      <!--TEZ-->
-      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Update Tez GC JVM args">
-        <task xsi:type="configure" id="jdp_30_tez_gc_jvm_args" />
+        <task xsi:type="configure" id="hdp_3_0_updating_ranger_hive_policy_rest_ssl_file" />
       </execute-stage>
 
       <!--OOZIE-->
@@ -626,15 +596,11 @@
 
       <!--RANGER-->
       <execute-stage service="RANGER" component="RANGER_USERSYNC" title="Updating Ranger Usersync Config">
-        <task xsi:type="configure" id="jdp_3_0_ranger_usersync_maintain_groupsearch_enable_flag"/>
+        <task xsi:type="configure" id="hdp_3_0_ranger_usersync_maintain_groupsearch_enable_flag"/>
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Adding Ranger Tagsync Config">
-        <task xsi:type="configure" id="jdp_3_0_add_ranger_tagsync_cookie_enabled_config"/>
-      </execute-stage>
-
-      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Updating Tagsync security protocol for Kafka">
-        <task xsi:type="configure" id="jdp_3_0_x_tagsync_plaintext_sasl_removal"/>
+        <task xsi:type="configure" id="hdp_3_0_add_ranger_tagsync_cookie_enabled_config"/>
       </execute-stage>
 
       <!--ATLAS-->
@@ -644,10 +610,6 @@
 
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Adding Janus-graph logger configurations for Atlas.">
         <task xsi:type="configure" id="atlas_log4j_adding_janus_graph"/>
-      </execute-stage>
-
-      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas security protocol for Kafka">
-        <task xsi:type="configure" id="jdp_3_0_x_atlas_plaintext_sasl_removal"/>
       </execute-stage>
 
       <!--KAFKA-->
@@ -671,20 +633,13 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Remove deprecated PLAINTEXTSASL usage">
-        <task xsi:type="configure" id="jdp_3_0_x_kafka_plaintext_sasl_removal">
-          <summary>Remove deprecated PLAINTEXTSASL protocol in flavor of SASL_PLAINTEXT.
-          </summary>
-        </task>
-      </execute-stage>
-
       <!--STORM-->
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Storm AutoCreds">
         <task xsi:type="configure" id="storm_nimbus_autocred_config"/>
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Update config changes for Storm">
-        <task xsi:type="configure" id="jdp_3_0_update_storm_env_ext_classpath"/>
+        <task xsi:type="configure" id="hdp_3_0_update_storm_env_ext_classpath"/>
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
@@ -707,25 +662,25 @@
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Updating storm logsearch config">
-        <task xsi:type="configure" id="jdp_3_0_0_0_storm_logsearch_conf"/>
+        <task xsi:type="configure" id="hdp_3_0_0_0_storm_logsearch_conf"/>
       </execute-stage>
 
       <!--ZEPPELIN-->
       <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Apply zeppelin.notebook.storage config">
-        <task xsi:type="configure" id="jdp_3_0_0_0_zeppelin_notebook_storage"/>
+        <task xsi:type="configure" id="hdp_3_0_0_0_zeppelin_notebook_storage"/>
       </execute-stage>
 
       <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Crate zeppelin-site config based on zeppelin-conf">
-        <task xsi:type="configure" id="jdp_3_0_0_0_zeppelin_site"/>
+        <task xsi:type="configure" id="hdp_3_0_0_0_zeppelin_site"/>
       </execute-stage>
 
       <execute-stage service="ZEPPELIN" component="ZEPPELIN_MASTER" title="Update content property and remove unnecessary properties">
-        <task xsi:type="configure" id="jdp_3_0_0_0_zeppelin_env"/>
+        <task xsi:type="configure" id="hdp_3_0_0_0_zeppelin_env"/>
       </execute-stage>
 
       <!--SPARK2-->
       <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Update content property in env config">
-        <task xsi:type="configure" id="jdp_3_0_0_0_spark2_env"/>
+        <task xsi:type="configure" id="hdp_3_0_0_0_spark2_env"/>
       </execute-stage>
 
       <execute-stage service="SPARK2" component="SPARK2_THRIFTSERVER" title="Update Yarn ACL Admin queue">
@@ -735,12 +690,12 @@
       </execute-stage>
 
       <!--ACCUMULO-->
-      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Convert Accumulo jdp 2.6 env variable naming to jdp 3.0">
-        <task xsi:type="configure" id="jdp_30_accumulo_stack_variables_update"/>
+      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Convert Accumulo HDP 2.6 env variable naming to HDP 3.0">
+        <task xsi:type="configure" id="hdp_30_accumulo_stack_variables_update"/>
       </execute-stage>
 
-      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Update Accumulo jdp 2.6 classpath for jdp 3.0">
-        <task xsi:type="configure" id="jdp_30_accumulo_classpath_update"/>
+      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Update Accumulo HDP 2.6 classpath for HDP 3.0">
+        <task xsi:type="configure" id="hdp_30_accumulo_classpath_update"/>
       </execute-stage>
 
     </group>
@@ -799,7 +754,7 @@
     </group>
 
     <!--
-    Invoke "jdp-select set all" to change any components we may have missed
+    Invoke "hdp-select set all" to change any components we may have missed
     that are installed on the hosts but not known by Ambari.
     -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
@@ -1042,7 +997,7 @@
 
     <group xsi:type="cluster" name="MOVE_HIVE_TABLES" title="Move Hive Tables">
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Move Hive Tables">
-        <task xsi:type="execute" hosts="any" timeout-config="upgrade.parameter.move.hive.tables.timeout">
+        <task xsi:type="execute" hosts="any">
           <script>scripts/post_upgrade.py</script>
           <function>move_tables</function>
         </task>
@@ -1696,7 +1651,7 @@
       <component name="ATLAS_SERVER">
         <pre-upgrade>
           <task xsi:type="execute" hosts="all">
-            <summary>Configuring Atlas for jdp 3.0</summary>
+            <summary>Configuring Atlas for HDP 3.0</summary>
             <script>scripts/metadata_server.py</script>
             <function>configure_atlas_for_upgrade</function>
           </task>

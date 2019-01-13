@@ -19,7 +19,6 @@
   <versions>
     <active>true</active>
   </versions>
-  <extends>3.0</extends>
   <minJdk>1.8</minJdk>
   <maxJdk>1.8</maxJdk>
 </metainfo>

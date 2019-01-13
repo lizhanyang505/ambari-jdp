@@ -16,49 +16,17 @@
    limitations under the License.
 -->
 <reposinfo>
-  <latest>http://archive.fusionlab.cn/JDP/jdp_urlinfo.json</latest>
+  <latest>http://archive.fusionlab.cn/jdp/jdp_urlinfo.json</latest>
   <os family="redhat7">
     <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP/centos7/3.x/updates/3.1.0.0</baseurl>
+      <baseurl>http://archive.fusionlab.cn/jdp/centos7/3.x/3.1.0.0</baseurl>
       <repoid>JDP-3.1</repoid>
       <reponame>JDP</reponame>
       <unique>true</unique>
     </repo>    
     <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP-GPL/centos7/3.x/updates/3.1.0.0</baseurl>
-      <repoid>JDP-3.1-GPL</repoid>
-      <reponame>JDP-GPL</reponame>
-      <unique>true</unique>
-      <tags>
-        <tag>GPL</tag>
-      </tags>
-    </repo>
-    <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP-UTILS-1.1.0.22/repos/centos7</baseurl>
-      <repoid>JDP-UTILS-1.1.0.22</repoid>
-      <reponame>JDP-UTILS</reponame>
-      <unique>false</unique>
-    </repo>
-  </os>
-  <os family="ubuntu18">
-    <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP/ubuntu18/3.x/updates/3.1.0.0</baseurl>
-      <repoid>JDP-3.1</repoid>
-      <reponame>JDP</reponame>
-      <unique>true</unique>
-    </repo>
-    <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP-GPL/ubuntu18/3.x/updates/3.1.0.0</baseurl>
-      <repoid>JDP-3.1-GPL</repoid>
-      <reponame>JDP-GPL</reponame>
-      <unique>true</unique>
-      <tags>
-        <tag>GPL</tag>
-      </tags>
-    </repo>
-    <repo>
-      <baseurl>http://archive.fusionlab.cn/JDP-UTILS-1.1.0.22/repos/ubuntu18</baseurl>
-      <repoid>JDP-UTILS-1.1.0.22</repoid>
+      <baseurl>http://archive.fusionlab.cn/jdp/centos7/utils/1.1.0</baseurl>
+      <repoid>JDP-UTILS-1.1.0</repoid>
       <reponame>JDP-UTILS</reponame>
       <unique>false</unique>
     </repo>
