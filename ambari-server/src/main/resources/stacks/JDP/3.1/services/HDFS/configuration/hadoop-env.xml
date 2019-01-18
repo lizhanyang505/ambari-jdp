@@ -406,7 +406,7 @@
       HADOOP_OPTS="-Dzookeeper.sasl.client.username={{zk_principal_user}} $HADOOP_OPTS"
       {% endif %}
 
-      export HADOOP_OPTS="-jdp.version=$JDP_VERSION $HADOOP_OPTS"
+      export HADOOP_OPTS="-Djdp.version=$JDP_VERSION $HADOOP_OPTS"
 
 
       # Fix temporary bug, when ulimit from conf files is not picked up, without full relogin.
