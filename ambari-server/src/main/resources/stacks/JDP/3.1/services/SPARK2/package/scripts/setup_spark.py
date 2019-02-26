@@ -98,6 +98,11 @@ def setup_spark(env, type, upgrade_type = None, action = None):
     spark2_defaults.pop("history.server.spnego.keytab.file")
     spark2_defaults['spark.history.kerberos.principal'] = spark2_defaults['spark.history.kerberos.principal'].replace('_HOST', socket.getfqdn().lower())
 
+  # jdp for spark configuration
+  spark2_defaults['spark.driver.extraJavaOptions'] = '-Djdp.version=' + params.version
+  spark2_defaults['spark.executor.extraJavaOptions'] = '-Djdp.version=' + params.version
+  spark2_defaults['spark.yarn.am.extraJavaOptions'] = '-Djdp.version=' + params.version
+
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
     properties = spark2_defaults,
     key_value_delimiter = " ",
