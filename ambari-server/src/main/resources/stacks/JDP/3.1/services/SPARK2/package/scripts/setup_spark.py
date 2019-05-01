@@ -98,11 +98,6 @@ def setup_spark(env, type, upgrade_type = None, action = None):
     spark2_defaults.pop("history.server.spnego.keytab.file")
     spark2_defaults['spark.history.kerberos.principal'] = spark2_defaults['spark.history.kerberos.principal'].replace('_HOST', socket.getfqdn().lower())
 
-  # jdp for spark configuration
-  spark2_defaults['spark.driver.extraJavaOptions'] = '-Djdp.version=' + params.version
-  spark2_defaults['spark.executor.extraJavaOptions'] = '-Djdp.version=' + params.version
-  spark2_defaults['spark.yarn.am.extraJavaOptions'] = '-Djdp.version=' + params.version
-
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
     properties = spark2_defaults,
     key_value_delimiter = " ",
@@ -160,6 +155,11 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   effective_version = params.version if upgrade_type is not None else params.stack_version_formatted
   if effective_version:
     effective_version = format_stack_version(effective_version)
+
+  # jdp for spark configuration
+  spark2_defaults['spark.driver.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
+  spark2_defaults['spark.executor.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
+  spark2_defaults['spark.yarn.am.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
 
   if params.spark_thrift_fairscheduler_content and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
     # create spark-thrift-fairscheduler.xml
