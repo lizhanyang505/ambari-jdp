@@ -156,11 +156,6 @@ def setup_spark(env, type, upgrade_type = None, action = None):
   if effective_version:
     effective_version = format_stack_version(effective_version)
 
-  # jdp for spark configuration
-  spark2_defaults['spark.driver.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
-  spark2_defaults['spark.executor.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
-  spark2_defaults['spark.yarn.am.extraJavaOptions'] = '-Djdp.version=%s' %(effective_version)
-
   if params.spark_thrift_fairscheduler_content and effective_version and check_stack_feature(StackFeature.SPARK_16PLUS, effective_version):
     # create spark-thrift-fairscheduler.xml
     File(os.path.join(params.spark_conf,"spark-thrift-fairscheduler.xml"),

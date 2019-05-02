@@ -225,6 +225,8 @@
     <on-ambari-upgrade add="false"/>
   </property>
 
+ <!-- TODO: JDP 3.2.0.0 does not support hive3 -->
+  <!-- 
   <property>
     <name>spark.sql.hive.metastore.version</name>
     <value>3.0</value>
@@ -236,7 +238,8 @@
     <value>/usr/jdp/current/spark2-client/standalone-metastore/*</value>
     <description></description>
     <on-ambari-upgrade add="false"/>
-  </property>
+  </property> 
+  -->
 
   <property>
     <name>spark.history.store.path</name>
