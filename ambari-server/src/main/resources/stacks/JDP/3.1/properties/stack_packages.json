@@ -663,6 +663,20 @@
           ]
         }
       },
+      "FUSIONDB": {
+        "FUSIONDB": {
+          "STACK-SELECT-PACKAGE": "fusiondb",
+          "INSTALL": [
+            "fusiondb"
+          ],
+          "PATCH": [
+            "fusiondb"
+          ],
+          "STANDARD": [
+            "fusiondb"
+          ]
+        }
+      },
       "TEZ": {
         "TEZ_CLIENT": {
           "STACK-SELECT-PACKAGE": "tez-client",
@@ -937,6 +951,12 @@
           "current_dir": "{0}/current/superset/conf"
         }
       ],
+      "fusiondb": [
+        {
+          "conf_dir": "/etc/fusiondb/conf",
+          "current_dir": "{0}/current/fusiondb/conf"
+        }
+      ],
       "tez": [
         {
           "conf_dir": "/etc/tez/conf",
@@ -1013,6 +1033,9 @@
       },
       "SUPERSET": {
         "packages": ["superset"]
+      },
+       "FUSIONDB": {
+        "packages": ["fusiondb"]
       },
       "SYSTEMML": {
         "packages": []
