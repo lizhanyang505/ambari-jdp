@@ -1,0 +1,8 @@
+{
+  "general_deps" : {
+    "_comment" : "dependencies for CAI",
+    "CAI-START" : ["MAPREDUCE2_SERVICE_CHECK-SERVICE_CHECK"],
+    "CAI-STOP" : ["SPARK2_JOBHISTORYSERVER-STOP"],
+    "CAI_SERVICE_CHECK-SERVICE_CHECK" : ["CAI-START"]
+  }
+}
