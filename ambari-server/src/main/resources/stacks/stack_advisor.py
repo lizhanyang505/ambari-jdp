@@ -1311,7 +1311,7 @@ class DefaultStackAdvisor(StackAdvisor):
     self.logger.info("Containers per node - cluster[containers]: " + str(cluster["containers"]))
 
     if cluster["containers"] * cluster["minContainerSize"] > cluster["totalAvailableRam"]:
-      cluster["containers"] = ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"])
+      cluster["containers"] = int(ceil(cluster["totalAvailableRam"] / cluster["minContainerSize"]))
       self.logger.info("Modified number of containers based on provided value for yarn.scheduler.minimum-allocation-mb")
       pass
 
@@ -2216,7 +2216,7 @@ class DefaultStackAdvisor(StackAdvisor):
     :return: the stack root as specified in the config or /usr/hdp
     """
     cluster_env = self.getServicesSiteProperties(services, "cluster-env")
-    stack_root = "/usr/jdp"
+    stack_root = "/usr/hdp"
     if cluster_env and "stack_root" in cluster_env:
       stack_root_as_str = cluster_env["stack_root"]
       stack_roots = json.loads(stack_root_as_str)
@@ -2987,6 +2987,10 @@ class DefaultStackAdvisor(StackAdvisor):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
+
+    if not dir:
+      return self.getErrorItem("Value has wrong format")
+
     mountPoints = {}
     for mountPoint in hostInfo["disk_info"]:
       mountPoints[mountPoint["mountpoint"]] = self.to_number(mountPoint["available"])
@@ -2994,6 +2998,9 @@ class DefaultStackAdvisor(StackAdvisor):
 
     if not mountPoints:
       return self.getErrorItem("No disk info found on host %s" % hostInfo["host_name"])
+
+    if mountPoint is None:
+      return self.getErrorItem("No mount point in directory %s. Mount points: %s" % (dir, ', '.join(mountPoints.keys())))
 
     if mountPoints[mountPoint] < reqiuredDiskSpace:
       msg = "Ambari Metrics disk space requirements not met. \n" \

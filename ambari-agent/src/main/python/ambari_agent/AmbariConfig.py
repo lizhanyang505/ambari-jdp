@@ -24,6 +24,7 @@ import StringIO
 import hostname
 import ambari_simplejson as json
 import os
+import ssl
 
 from ambari_agent.FileCache import FileCache
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -110,8 +111,8 @@ class AmbariConfig:
   def get(self, section, value, default=None):
     try:
       return str(self.config.get(section, value)).strip()
-    except ConfigParser.Error, err:
-      if default != None:
+    except ConfigParser.Error as err:
+      if default is not None:
         return default
       raise err
 
@@ -376,7 +377,8 @@ class AmbariConfig:
 
     :return: protocol name, PROTOCOL_TLSv1_2 by default
     """
-    return self.get('security', 'force_https_protocol', default="PROTOCOL_TLSv1_2")
+    default = "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
+    return self.get('security', 'force_https_protocol', default=default)
 
   def get_force_https_protocol_value(self):
     """
@@ -384,7 +386,6 @@ class AmbariConfig:
 
     :return: protocol value
     """
-    import ssl
     return getattr(ssl, self.get_force_https_protocol_name())
 
   def get_ca_cert_file_path(self):

@@ -155,6 +155,7 @@ import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.jpa.AmbariJpaPersistService;
 
 
 @SuppressWarnings("unchecked")
@@ -239,6 +240,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         PartialNiceMockBinder.newBuilder().addActionDBAccessorConfigsBindings().addFactoriesInstallBinding()
             .build().configure(binder());
 
+        bind(AmbariJpaPersistService.class).toInstance(createNiceMock(AmbariJpaPersistService.class));
         bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
         bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
         bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
@@ -3392,7 +3394,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
-    // Clean-up/Finalize Stage
+    // Clean-up
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(EasyMock.anyObject());
+    expectLastCall().once();
+    // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
@@ -3537,7 +3544,7 @@ public class KerberosHelperTest extends EasyMockSupport {
           .once();
 
       final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-      expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
+      expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
           .andReturn(new HashMap<String, Map<String, String>>() {
             {
               put("cluster-env", new HashMap<String, String>() {{
@@ -3710,7 +3717,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .once();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
+    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {
@@ -3745,7 +3752,12 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
     expectLastCall().once();
-    // Clean-up/Finalize Stage
+    // Clean-up
+    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+    expect(requestStageContainer.getId()).andReturn(1L).once();
+    requestStageContainer.addStages(EasyMock.anyObject());
+    expectLastCall().once();
+    // Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(EasyMock.anyObject());
@@ -3927,7 +3939,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .anyTimes();
 
     final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
-    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), EasyMock.anyObject()))
+    expect(configHelper.calculateExistingConfigurations(eq(ambariManagementController), anyObject(Cluster.class), EasyMock.anyObject()))
         .andReturn(new HashMap<String, Map<String, String>>() {
           {
             put("cluster-env", new HashMap<String, String>() {{

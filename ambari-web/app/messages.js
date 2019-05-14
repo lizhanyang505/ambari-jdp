@@ -29,7 +29,7 @@ Em.I18n.translations = {
   'app.redirectIssuePopup.header': 'Login Redirect Issue',
   'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
     '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
-    '<a href="{0}" target="_blank">{0}</a>',
+    '<a rel="noopener noreferrer" href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
@@ -1830,6 +1830,7 @@ Em.I18n.translations = {
     ' “Go to Dashboard” link in the Ambari Administration > Clusters section.',
   'admin.stackVersions.version.installNow': "Install Packages",
   'admin.stackVersions.version.reinstall': "Reinstall Packages",
+  'admin.stackVersions.version.installError': "Installation Error!",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
   'admin.stackVersions.version.preUpgradeCheck': 'Pre-Upgrade Check',
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
@@ -1847,7 +1848,12 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.paused.fail.body': "Upgrade could not be paused. Try again later.",
   'admin.stackDowngrade.state.paused.fail.header': "Pause Downgrade failed",
   'admin.stackDowngrade.state.paused.fail.body': "Downgrade could not be paused. Try again later.",
-
+  'admin.stackVersions.version.errors.outOfSync.title': 'Host component out of sync',
+  'admin.stackVersions.version.errors.outOfSync.desc': 'One of more host components did not report the version that Ambari expected.' +
+  ' Please re-install the failed host component, or remove it.',
+  'admin.stackVersions.version.errors.outOfSync.reinstall.title': 'Confirm Re-Install',
+  'admin.stackVersions.version.errors.outOfSync.remove.title': 'Confirm Remove',
+  
   'admin.stackVersions.version.service.notUpgradable': "The version of this service included in this repository is already installed in the cluster.",
   'admin.stackVersions.version.service.notSupported': "This service is unsupported in the current version of the stack.",
 
@@ -2343,7 +2349,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing Changes in',
   'services.service.config.setRecommendedValue': 'Set Recommended',
-  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a href="{3}" target="_blank">' +
+  'services.service.config.database.msg.jdbcSetup.detailed': 'To use {0} with {6}, you must <a rel="noopener noreferrer" href="{3}" target="_blank">' +
     'download the {4} from {0}</a>. Once downloaded to the Ambari Server host, run: <br/>' +
     '<b>ambari-server setup --jdbc-db={1} --jdbc-driver=/path/to/{1}/{2}</b>',
 
@@ -2883,6 +2889,7 @@ Em.I18n.translations = {
   'hosts.host.maintainance.stopAllComponents.context': 'Stop All Host Components',
   'hosts.host.maintainance.startAllComponents.context': 'Start All Host Components',
   'hosts.host.maintainance.reinstallFailedComponents.context': 'Reinstall Failed Components',
+  'hosts.host.maintainance.removeFailedComponents.context': 'Remove Failed Components',
   'hosts.host.recover.initAllComponents.context': 'Init All Host Components',
   'hosts.host.recover.installAllComponents.context': 'Install All Host Components',
   'hosts.host.recover.regenerateKeytabs.context': 'Regenerate keytabs',

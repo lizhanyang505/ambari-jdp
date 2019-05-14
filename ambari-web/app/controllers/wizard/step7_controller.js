@@ -1904,6 +1904,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   selectService: function (event) {
+    this.get('stepConfigs').forEach((service) => {
+      service.set('isActive', service.get('serviceName') === event.context.serviceName);
+    });
     this.set('selectedService', event.context);
     var activeTabs = this.get('tabs').findProperty('isActive', true);
     if (activeTabs) {
@@ -2079,6 +2082,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     Em.run.next(this, function () {
       this.set('filter', propertyName);
     });
+
+    this.get('stepConfigs').setEach('isActive', false);
+    stepConfig.set('isActive', true);
   },
 
   /**
@@ -2102,11 +2108,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var recommendations = this.get('changedProperties.length');
     var validations = this.get('stepConfigs').mapProperty('configsWithErrors.length').reduce(Em.sum, 0);
     var configErrorList = this.get('configErrorList');
+    this.set('hasErrors', Boolean(validations + configErrorList.get('criticalIssues.length')));
     this.set('issuesCounter', recommendations + validations + configErrorList.get('issues.length') + configErrorList.get('criticalIssues.length'));
     if (validations !== this.get('validationsCounter')) {
       this.ringBell();
     }
-    this.set('hasErrors', Boolean(validations + configErrorList.get('criticalIssues.length')));
     this.set('validationsCounter', validations);
   }.observes('changedProperties.length', 'stepConfigs.@each.configsWithErrors.length', 'configErrorList.issues.length', 'configErrorList.criticalIssues.length'),
 

@@ -467,6 +467,13 @@ public class Configuration {
       "api.csrfPrevention.enabled", "true");
 
   /**
+   * Determines whether Gzip handler is enabled for Jetty.
+   */
+  @Markdown(description = "Determines whether jetty Gzip compression is enabled or not.")
+  public static final ConfigurationProperty<String> GZIP_HANDLER_JETTY_ENABLED = new ConfigurationProperty<>(
+    "gzip.handler.jetty.enabled", "true");
+
+  /**
    * Determines whether HTTP body data is compressed with GZIP.
    */
   @Markdown(description = "Determines whether data sent to and from the Ambari service should be compressed.")
@@ -2262,6 +2269,15 @@ public class Configuration {
       "views.http.cache-control", "no-store");
 
   /**
+   * The value that is additional classpath for the views. It will take comma separated paths. If the individual path is jar
+   * it will be included otherwise if it is a directory then all the files inside it will be included in the classpath. Directories
+   * WILL NOT BE traversed recursively
+   */
+  @Markdown(description = "Additional class path added to each Ambari View. Comma separated jars or directories")
+  public static final ConfigurationProperty<String> VIEWS_ADDITIONAL_CLASSPATH_VALUE = new ConfigurationProperty<>(
+      "views.additional.classpath", "");
+
+  /**
    * The value that will be used to set the {@code PRAGMA} HTTP response header.
    * HTTP response header for Ambari View requests.
    */
@@ -3740,6 +3756,19 @@ public class Configuration {
   }
 
   /**
+   * Get the comma separated additional classpath, that should be added to view's classloader.
+   * <p/>
+   * By default it will be empty. i.e. no additional classpath.
+   * If present it will be comma separated path entries. Each entry can be a file or a directory.
+   * If entry is a file it will be added as it is.
+   * If entry is a directory, all the files inside this directory will be added to the classpath.
+   * @return the view's additional classpath value - null or "" indicates that the value is not set
+   */
+  public String getViewsAdditionalClasspath() {
+    return getProperty(VIEWS_ADDITIONAL_CLASSPATH_VALUE);
+  }
+
+  /**
    * Get the value that should be set for the <code>Pragma</code> HTTP response header for Ambari Views.
    * <p/>
    * By default this will be <code>no-cache</code>. For example:
@@ -3794,6 +3823,15 @@ public class Configuration {
    */
   public boolean isApiGzipped() {
     return Boolean.parseBoolean(getProperty(API_GZIP_COMPRESSION_ENABLED));
+  }
+
+
+  /**
+   * Check to see if the API responses should be compressed via gzip or not
+   * @return false if not, true if gzip compression needs to be used.
+   */
+  public boolean isGzipHandlerEnabledForJetty() {
+    return Boolean.parseBoolean(getProperty(GZIP_HANDLER_JETTY_ENABLED));
   }
 
   /**

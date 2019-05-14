@@ -145,6 +145,7 @@ import org.apache.ambari.server.metadata.RoleCommandOrderProvider;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExtensionDAO;
 import org.apache.ambari.server.orm.dao.ExtensionLinkDAO;
+import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.SettingDAO;
@@ -153,6 +154,7 @@ import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ExtensionLinkEntity;
+import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepoDefinitionEntity;
 import org.apache.ambari.server.orm.entities.RepoOsEntity;
@@ -182,6 +184,7 @@ import org.apache.ambari.server.stack.ExtensionHelper;
 import org.apache.ambari.server.stack.RepoUtil;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -373,6 +376,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Inject
   private RepositoryVersionHelper repoVersionHelper;
 
+  @Inject
+  private HostComponentDesiredStateDAO hostComponentDesiredStateDAO;
+
   /**
    * The KerberosHelper to help setup for enabling for disabling Kerberos
    */
@@ -548,6 +554,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests)
       throws AmbariException, AuthorizationException {
 
+    createHostComponents(requests, false);
+  }
+
+  @Override
+  public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
+      throws AmbariException, AuthorizationException {
+
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
       return;
@@ -700,11 +713,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     // set restartRequired flag for  monitoring services
     setMonitoringServicesRestartRequired(requests);
     // now doing actual work
-    persistServiceComponentHosts(requests);
+    persistServiceComponentHosts(requests, isBlueprintProvisioned);
     m_topologyHolder.get().updateData(getAddedComponentsTopologyEvent(requests));
   }
 
-  void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests)
+  void persistServiceComponentHosts(Set<ServiceComponentHostRequest> requests, boolean isBlueprintProvisioned)
     throws AmbariException {
     Multimap<Cluster, ServiceComponentHost> schMap = ArrayListMultimap.create();
     Map<Long, Map<String, List<String>>> serviceComponentNames = new HashMap<>();
@@ -740,6 +753,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           && !request.getDesiredState().isEmpty()) {
         State state = State.valueOf(request.getDesiredState());
         sch.setDesiredState(state);
+      }
+      if (isBlueprintProvisioned && !sch.isClientComponent()) {
+        HostComponentDesiredStateEntity desiredStateEntity = sch.getDesiredStateEntity();
+        desiredStateEntity.setBlueprintProvisioningState(BlueprintProvisioningState.IN_PROGRESS);
+        hostComponentDesiredStateDAO.merge(desiredStateEntity);
       }
 
       schMap.put(cluster, sch);
@@ -2536,7 +2554,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Map<String, String> hostParams = new TreeMap<>();
-    hostParams.putAll(getRcaParameters());
 
     if (roleCommand.equals(RoleCommand.INSTALL)) {
       List<ServiceOsSpecific.Package> packages =
@@ -5675,6 +5692,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return statusCommandParams;
   }
 
+  @Override
+  public Map<String, BlueprintProvisioningState> getBlueprintProvisioningStates(Long clusterId, Long hostId)
+      throws AmbariException {
+    Map<String, BlueprintProvisioningState> blueprintProvisioningStates = new HashMap<>();
+    Host host = clusters.getHostById(hostId);
+    Cluster cl = clusters.getCluster(clusterId);
+    for (ServiceComponentHost sch : cl.getServiceComponentHosts(host.getHostName())) {
+      if (!sch.isClientComponent()) {
+        blueprintProvisioningStates.put(sch.getServiceComponentName(),
+            sch.getDesiredStateEntity().getBlueprintProvisioningState());
+      }
+    }
+    return blueprintProvisioningStates;
+  }
+
   //TODO will be a need to change to multi-instance usage
   public TreeMap<String, String> getTopologyCommandParams(Long clusterId, String serviceName, String componentName, ServiceComponentHost sch) throws AmbariException {
     TreeMap<String, String> commandParams = new TreeMap<>();
@@ -5771,13 +5803,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PropertyType.NOT_MANAGED_HDFS_PATH, cluster, desiredConfigs);
     String notManagedHdfsPathList = gson.toJson(notManagedHdfsPathSet);
     clusterLevelParams.put(NOT_MANAGED_HDFS_PATH_LIST, notManagedHdfsPathList);
-
-    Map<String, ServiceInfo> serviceInfos = ambariMetaInfo.getServices(stackId.getStackName(), stackId.getStackVersion());
-    for (ServiceInfo serviceInfoInstance : serviceInfos.values()) {
-      if (serviceInfoInstance.getServiceType() != null) {
+    
+    for (Service service : cluster.getServices().values()) {
+      ServiceInfo serviceInfoInstance = ambariMetaInfo.getService(service);
+      String serviceType = serviceInfoInstance.getServiceType();
+      if (serviceType != null) {
         LOG.debug("Adding {} to command parameters for {}", serviceInfoInstance.getServiceType(),
-            serviceInfoInstance.getName());
-
+          serviceInfoInstance.getName());
         clusterLevelParams.put(DFS_TYPE, serviceInfoInstance.getServiceType());
         break;
       }

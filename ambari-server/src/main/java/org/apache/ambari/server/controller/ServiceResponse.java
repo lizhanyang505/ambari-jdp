@@ -39,11 +39,15 @@ public class ServiceResponse {
   private final boolean ssoIntegrationSupported;
   private final boolean ssoIntegrationDesired;
   private final boolean ssoIntegrationEnabled;
+  private final boolean ssoIntegrationRequiresKerberos;
+  private final boolean kerberosEnabled;
 
   public ServiceResponse(Long clusterId, String clusterName, String serviceName,
                          StackId desiredStackId, String desiredRepositoryVersion,
                          RepositoryVersionState repositoryVersionState, String desiredState,
-                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported, boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled) {
+                         boolean credentialStoreSupported, boolean credentialStoreEnabled, boolean ssoIntegrationSupported,
+                         boolean ssoIntegrationDesired, boolean ssoIntegrationEnabled, boolean ssoIntegrationRequiresKerberos,
+                         boolean kerberosEnabled) {
     this.clusterId = clusterId;
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -56,9 +60,9 @@ public class ServiceResponse {
     this.desiredRepositoryVersion = desiredRepositoryVersion;
     this.credentialStoreSupported = credentialStoreSupported;
     this.credentialStoreEnabled = credentialStoreEnabled;
+    this.ssoIntegrationRequiresKerberos = ssoIntegrationRequiresKerberos;
+    this.kerberosEnabled = kerberosEnabled;
   }
-
-
 
   /**
    * @return the serviceName
@@ -228,7 +232,7 @@ public class ServiceResponse {
 
   @Override
   public int hashCode() {
-    int result = clusterId != null? clusterId.intValue() : 0;
+    int result = clusterId != null ? clusterId.intValue() : 0;
     result = 71 * result + (clusterName != null ? clusterName.hashCode() : 0);
     result = 71 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
@@ -259,6 +263,22 @@ public class ServiceResponse {
   }
 
   /**
+   * Indicates if Kerberos is required for SSO integration
+   */
+  @ApiModelProperty(name = "sso_integration_requires_kerberos")
+  public boolean isSsoIntegrationRequiresKerberos() {
+    return ssoIntegrationRequiresKerberos;
+  }
+
+  /**
+   * Indicates whether the service is configured for Kerberos or not
+   */
+  @ApiModelProperty(name = "kerberos_enabled")
+  public boolean isKerberosEnabled() {
+    return kerberosEnabled;
+  }
+
+  /**
    * Interface to help correct Swagger documentation generation
    */
   public interface ServiceResponseSwagger extends ApiModel {
@@ -267,14 +287,14 @@ public class ServiceResponse {
   }
 
   /**
-   * @param id
+   * @param id the desired repository id
    */
   public void setDesiredRepositoryVersionId(Long id) {
     desiredRepositoryVersionId = id;
   }
 
   /**
-   * @param id
+   * @return the desired repository id
    */
   public Long getDesiredRepositoryVersionId() {
     return desiredRepositoryVersionId;

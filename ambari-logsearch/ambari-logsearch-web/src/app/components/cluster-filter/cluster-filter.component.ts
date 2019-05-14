@@ -17,7 +17,7 @@
 import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import 'rxjs/add/operator/switchMap';
 import {Observable} from 'rxjs/Observable';
-import {ActivatedRouteSnapshot, Router, RoutesRecognized} from '@angular/router';
+import {ActivatedRouteSnapshot, Router, NavigationEnd} from '@angular/router';
 import {Subscription} from 'rxjs/Subscription';
 
 import {ClustersService} from '@app/services/storage/clusters.service';
@@ -28,7 +28,7 @@ import {BehaviorSubject} from 'rxjs/BehaviorSubject';
 import {FilterDropdownComponent} from '@modules/shared/components/filter-dropdown/filter-dropdown.component';
 import {RoutingUtilsService} from '@app/services/routing-utils.service';
 import {DataAvailabilityValues} from '@app/classes/string';
-import { DataAvailabilityStatesStore } from '@modules/app-load/stores/data-avaibility-state.store';
+import { DataAvailabilityStatesStore } from '@app/modules/app-load/stores/data-availability-state.store';
 import { DataStateStoreKeys } from '@app/modules/app-load/services/app-load.service';
 
 @Component({
@@ -43,9 +43,21 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
   })
   filterDropdown: FilterDropdownComponent;
 
-  private clustersAsListItems$: Observable<ListItem[]>;
-
   private clusterSelectionStoreKey: BehaviorSubject<string> = new BehaviorSubject('');
+
+  private clustersAsListItems$: Observable<ListItem[]> = this.clusterSelectionStoreKey.distinctUntilChanged()
+    .switchMap((selectionStoreKey: string) => Observable.combineLatest(
+        this.clusterSelectionStoreService.getParameter(selectionStoreKey),
+        this.clusterStoreService.getAll()
+      ).map(([selections, clusters]) => {
+        const selectedClusters = selections ? (Array.isArray(selections) ? selections : [selections]) : selections;
+        return clusters.map((cluster) => Object.assign(this.utilsService.getListItemFromString(cluster), {
+            isChecked: selectedClusters && selectedClusters.indexOf(cluster) > -1
+          })
+        );
+      })
+    ).startWith([]);
+
   private readonly defaultUseMultiSelection = true;
   private useMultiSelection: BehaviorSubject<boolean> = new BehaviorSubject(false);
 
@@ -62,10 +74,7 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this.router.events.filter(routes => routes instanceof RoutesRecognized).subscribe(this.onRecognizedActivatedRouteData)
-    );
-    this.subscriptions.push(
-      this.clusterSelectionStoreKey.subscribe(this.onClusterSelectionStoreKeyChange)
+      this.router.events.filter(routes => routes instanceof NavigationEnd).subscribe(this.onNavigationEnd)
     );
     this.actualizeDropdownSelectionByActivatedRouteSnapshot(this.router.routerState.root.snapshot);
   }
@@ -100,7 +109,8 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
   }
 
   private setDropdownSelectionByActivatedRouteSnapshot(routeSnapshot: ActivatedRouteSnapshot): void {
-    let clusterSelection = this.routingUtilsService.getParamFromActivatedRouteSnapshot(routeSnapshot, 'cluster');
+    const clusterParamKey: string = this.routingUtilsService.getDataFromActivatedRouteSnapshot(routeSnapshot, 'clusterParamKey');
+    let clusterSelection = this.routingUtilsService.getParamFromActivatedRouteSnapshot(routeSnapshot, clusterParamKey || 'cluster');
     if (clusterSelection) {
       clusterSelection = this.useMultiSelection.getValue() ? clusterSelection.split(/[,;]/) : clusterSelection;
       if (Array.isArray(clusterSelection)) {
@@ -118,10 +128,10 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
         .filter((state: DataAvailabilityValues) => state === DataAvailabilityValues.AVAILABLE)
         .first()
         .subscribe(() => {
-          this.filterDropdown.updateSelection(clusterSelection);
+          this.filterDropdown.writeValue(clusterSelection);
         });
     } else {
-      this.filterDropdown.selection = [];
+      this.filterDropdown.clearSelection();
     }
   }
 
@@ -131,8 +141,8 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
     this.setDropdownSelectionByActivatedRouteSnapshot(routeSnapshot);
   }
 
-  private onRecognizedActivatedRouteData = (routes: RoutesRecognized): void => {
-    this.actualizeDropdownSelectionByActivatedRouteSnapshot(routes.state.root);
+  private onNavigationEnd = (): void => {
+    this.actualizeDropdownSelectionByActivatedRouteSnapshot(this.router.routerState.root.snapshot);
   }
 
   onDropDownSelectionChanged = (values): void => {
@@ -146,25 +156,6 @@ export class ClusterFilterComponent implements OnInit, OnDestroy {
           this.clusterSelectionStoreService.setParameter(this.clusterSelectionStoreKey.getValue(), values);
         }
       });
-  }
-
-  private setListItems(selectionStoreKey: string): void {
-    this.clustersAsListItems$ = Observable.combineLatest(
-      this.clusterSelectionStoreService.getParameter(selectionStoreKey),
-      this.clusterStoreService.getAll()
-    ).map(([selections, clusters]) => {
-      const selectedClusters = selections ? (Array.isArray(selections) ? selections : [selections]) : selections;
-      return clusters.map((cluster) => Object.assign(this.utilsService.getListItemFromString(cluster), {
-          isChecked: selectedClusters && selectedClusters.indexOf(cluster) > -1
-        })
-      );
-    }).startWith([]);
-  }
-
-  private onClusterSelectionStoreKeyChange = (selectionStoreKey: string): void => {
-    if (selectionStoreKey) {
-      this.setListItems(selectionStoreKey);
-    }
   }
 
 }

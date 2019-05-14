@@ -17,36 +17,39 @@
  */
 
 import {
-  Component, OnChanges, AfterViewChecked, SimpleChanges, Input, Output, EventEmitter, ViewChildren, ViewContainerRef,
-  QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
+  Component, OnChanges, AfterViewChecked, OnDestroy, SimpleChanges, Input, Output, EventEmitter,
+  ViewChildren, ViewContainerRef, QueryList, ChangeDetectorRef, ElementRef, ViewChild, OnInit
 } from '@angular/core';
 import {ListItem} from '@app/classes/list-item';
 import {ComponentGeneratorService} from '@app/services/component-generator.service';
+import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'ul[data-component="dropdown-list"]',
   templateUrl: './dropdown-list.component.html',
   styleUrls: ['./dropdown-list.component.less']
 })
-export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked {
+export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecked, OnDestroy {
 
-  private shouldRenderAdditionalComponents: boolean = false;
+  private shouldRenderAdditionalComponents = false;
 
   @Input()
   items: ListItem[] = [];
 
-  private itemsSelected: ListItem[] = [];
+  itemsSelected: ListItem[] = [];
 
-  private itemsUnSelected: ListItem[] = [];
+  itemsUnSelected: ListItem[] = [];
+
+  defaultSelection: ListItem[] = [];
 
   @Input()
-  isMultipleChoice?: boolean = false;
+  isMultipleChoice? = false;
 
   @Input()
   additionalLabelComponentSetter?: string;
 
   @Input()
-  actionArguments: any[] = [];
+  actionArguments = [];
 
   @Output()
   selectedItemChange: EventEmitter<ListItem | ListItem[]> = new EventEmitter();
@@ -58,6 +61,9 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   @Input()
   useLocalFilter = false;
+
+  @Input()
+  useClearToDefaultSelection = false;
 
   @ViewChild('filter')
   filterRef: ElementRef;
@@ -71,6 +77,8 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   private filterRegExp: RegExp;
 
+  private destroyed$ = new Subject();
+
   constructor(
     private componentGenerator: ComponentGeneratorService,
     private changeDetector: ChangeDetectorRef
@@ -78,11 +86,25 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
 
   ngOnInit() {
     this.separateSelections();
+    this.setDefaultSelection(this.items);
+    // trigger selection if any of the items has been checked
+    if (this.items.some((item: ListItem) => item.isChecked)) {
+      this.selectedItemChange.emit(this.items);
+    }
+    this.selectedItemChange.takeUntil(this.destroyed$).subscribe(this.separateSelections)
+  }
+
+  ngOnDestroy() {
+    this.destroyed$.next(true);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.hasOwnProperty('items')) {
+      const previousItems = changes.items.previousValue;
       this.separateSelections();
+      if ((!this.defaultSelection || !this.defaultSelection.length) && (!previousItems || !previousItems.length)) {
+        this.setDefaultSelection(this.items);
+      }
       this.shouldRenderAdditionalComponents = true;
     }
   }
@@ -91,18 +113,46 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     this.renderAdditionalComponents();
   }
 
-  private separateSelections() {
-    this.itemsSelected = this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
-    this.itemsUnSelected = this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  getSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => item.isChecked) : [];
+  }
+
+  getUnSelectedItems(): ListItem[] {
+    return this.items ? this.items.filter((item: ListItem) => !item.isChecked) : [];
+  }
+
+  private setDefaultSelection(items) {
+    this.defaultSelection = this.getSelectedItems();
+  }
+
+  private separateSelections = () => {
+    this.itemsSelected = this.getSelectedItems();
+    this.itemsUnSelected = this.getUnSelectedItems();
     this.shouldRenderAdditionalComponents = true;
   }
 
   private clearSelection() {
     this.unSelectAll();
-    this.separateSelections();
   }
 
-  private onClearSelectionClick = (event): void => {
+  private clearToDefaultSelection() {
+    if (this.defaultSelection && this.defaultSelection.length) {
+      this.items.forEach((item: ListItem) => {
+        item.isChecked = this.defaultSelection.findIndex((defaultItem) => defaultItem.value === item.value) !== -1;
+        if (item.onSelect && item.isChecked) {
+          item.onSelect(...this.actionArguments);
+        }
+      });
+      this.selectedItemChange.emit(this.items);
+    }
+  }
+
+  onClearToDefaultSelectionClick = (event): void => {
+    event.preventDefault();
+    event.stopPropagation();
+    this.clearToDefaultSelection();
+  }
+  onClearSelectionClick = (event): void => {
     event.preventDefault();
     event.stopPropagation();
     this.clearSelection();
@@ -115,7 +165,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     } else {
       this.unSelectAll();
     }
-    this.separateSelections();
   }
 
   selectAll() {
@@ -131,9 +180,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
   unSelectAll() {
     this.items.forEach((item: ListItem) => {
       item.isChecked = false;
-      if (item.onSelect) {
-        item.onSelect(...this.actionArguments);
-      }
     });
     this.selectedItemChange.emit(this.items);
   }
@@ -172,7 +218,6 @@ export class DropdownListComponent implements OnInit, OnChanges, AfterViewChecke
     if (item.onSelect) {
       item.onSelect(...this.actionArguments);
     }
-    this.separateSelections();
     this.selectedItemChange.emit(item);
   }
 

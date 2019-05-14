@@ -214,6 +214,9 @@ service_check_data = get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
+  zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_name", "zookeeper/_HOST@EXAMPLE.COM")
+  zk_principal_user = zk_principal_name.split('/')[0]
+  zk_security_opts = format('-Dzookeeper.sasl.client=true -Dzookeeper.sasl.client.username={zk_principal_user} -Dzookeeper.sasl.clientconfig=Client')
   _hostname_lowercase = config['agentLevelParams']['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
@@ -260,7 +263,7 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 
 hdfs_site = config['configurations']['hdfs-site']
-default_fs = config['configurations']['core-site']['fs.defaultFS']
+default_fs = default('configurations/core-site/fs.defaultFS', None)
 
 dfs_type = default("/clusterLevelParams/dfs_type", "")
 

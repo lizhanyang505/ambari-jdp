@@ -259,6 +259,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
   public static final String AMBARI_INFRA_OLD_NAME = "AMBARI_INFRA";
   public static final String AMBARI_INFRA_NEW_NAME = "AMBARI_INFRA_SOLR";
 
+  public static final String SERVICE_CONFIG_MAPPING_TABLE = "serviceconfigmapping";
+  public static final String CLUSTER_CONFIG_TABLE = "clusterconfig";
+
   // Broken constraints added by Views
   public static final String FK_HOSTCOMPONENTDESIREDSTATE_COMPONENT_NAME = "fk_hostcomponentdesiredstate_component_name";
   public static final String FK_HOSTCOMPONENTSTATE_COMPONENT_NAME = "fk_hostcomponentstate_component_name";
@@ -619,7 +622,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         PreparedStatement pstmt = dbAccessor.getConnection().prepareStatement("SELECT " + USERS_USER_ID_COLUMN + ", " + USERS_CREATE_TIME_COLUMN + " FROM " + USERS_TABLE + " WHERE " + temporaryColumnName + " IS NULL ORDER BY " + USERS_USER_ID_COLUMN);
         ResultSet rs = pstmt.executeQuery()) {
       while (rs.next()) {
-        currentUserCreateTimes.put(rs.getInt(1), rs.getTimestamp(2));
+        currentUserCreateTimes.put(rs.getInt(1), rs.getTimestamp(2) == null ? new Timestamp(System.currentTimeMillis()) : rs.getTimestamp(2));
       }
     }
     return currentUserCreateTimes;
@@ -1055,7 +1058,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     setStatusOfStagesAndRequests();
     updateLogSearchConfigs();
     updateKerberosConfigurations();
-    updateHostComponentLastStateTable();
     moveAmbariPropertiesToAmbariConfiguration();
     createRoleAuthorizations();
     addUserAuthenticationSequence();
@@ -1111,6 +1113,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
         hostComponentDesiredStateDAO.remove(hostComponentDesiredStateEntity);
         entityManager.detach(hostComponentDesiredStateEntity);
         hostComponentDesiredStateEntity.setServiceName(AMBARI_INFRA_NEW_NAME);
+        if ("INFRA_SOLR".equals(hostComponentDesiredStateEntity.getComponentName())) {
+          hostComponentDesiredStateEntity.setRestartRequired(true);
+        }
       }
 
       clusterServiceEntity.getServiceComponentDesiredStateEntities().clear();
@@ -1276,8 +1281,10 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
       for (KerberosServiceDescriptor serviceDescriptor : kerberosDescriptor.getServices().values()) {
         updateKerberosIdentities(serviceDescriptor);
-        for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
-          updateKerberosIdentities(componentDescriptor);
+        if (MapUtils.isNotEmpty(serviceDescriptor.getComponents())) {
+          for (KerberosComponentDescriptor componentDescriptor : serviceDescriptor.getComponents().values()) {
+            updateKerberosIdentities(componentDescriptor);
+          }
         }
       }
 
@@ -1426,7 +1433,7 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
    *
    * @throws AmbariException
    */
-  protected void updateLogSearchConfigs() throws AmbariException {
+  protected void updateLogSearchConfigs() throws AmbariException, SQLException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
     if (clusters != null) {
@@ -1435,11 +1442,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
       ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          cluster.getAllConfigs().stream()
-                  .map(Config::getType)
-                  .filter(configType -> configType.endsWith("-logsearch-conf"))
-                  .collect(Collectors.toSet())
-          .forEach(configType -> configHelper.removeConfigsByType(cluster, configType));
 
           Config logSearchEnv = cluster.getDesiredConfigByType("logsearch-env");
 
@@ -1519,9 +1521,26 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
 
             updateConfigurationPropertiesForCluster(cluster, "logfeeder-output-config", Collections.singletonMap("content", content), true, true);
           }
+          DBAccessor dba = dbAccessor != null ? dbAccessor : injector.getInstance(DBAccessor.class); // for testing
+          removeLogSearchPatternConfigs(dba);
         }
       }
     }
+  }
+
+  private void removeLogSearchPatternConfigs(DBAccessor dbAccessor) throws SQLException {
+    // remove config types with -logsearch-conf suffix
+    String configSuffix = "-logsearch-conf";
+    String serviceConfigMappingRemoveSQL = String.format(
+      "DELETE FROM %s WHERE config_id IN (SELECT config_id from %s where type_name like '%%%s')",
+      SERVICE_CONFIG_MAPPING_TABLE, CLUSTER_CONFIG_TABLE, configSuffix);
+
+    String clusterConfigRemoveSQL = String.format(
+      "DELETE FROM %s WHERE type_name like '%%%s'",
+      CLUSTER_CONFIG_TABLE, configSuffix);
+
+    dbAccessor.executeQuery(serviceConfigMappingRemoveSQL);
+    dbAccessor.executeQuery(clusterConfigRemoveSQL);
   }
 
   private void removeAdminHandlersFrom(Cluster cluster, String configType) throws AmbariException {
@@ -1745,6 +1764,9 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.PAGINATION_ENABLED, "authentication.ldap.pagination.enabled");
     map.put(AmbariServerConfigurationKey.COLLISION_BEHAVIOR, "ldap.sync.username.collision.behavior");
 
+    // Added in the event a previous version of Ambari had AMBARI-24827 back-ported to it
+    map.put(AmbariServerConfigurationKey.DISABLE_ENDPOINT_IDENTIFICATION, "ldap.sync.disable.endpoint.identification");
+
     // SSO-related properties
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_URL, "authentication.jwt.providerUrl");
     map.put(AmbariServerConfigurationKey.SSO_PROVIDER_CERTIFICATE, "authentication.jwt.publicKey");
@@ -1754,24 +1776,6 @@ public class UpgradeCatalog270 extends AbstractUpgradeCatalog {
     map.put(AmbariServerConfigurationKey.SSO_JWT_COOKIE_NAME, "authentication.jwt.cookieName");
 
     return map;
-  }
-
-  protected void updateHostComponentLastStateTable() throws SQLException {
-    executeInTransaction(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
-          List<HostComponentStateEntity> hostComponentStateEntities = hostComponentStateDAO.findAll();
-          for (HostComponentStateEntity hostComponentStateEntity : hostComponentStateEntities) {
-            hostComponentStateEntity.setLastLiveState(hostComponentStateEntity.getCurrentState());
-            hostComponentStateDAO.merge(hostComponentStateEntity);
-          }
-        } catch (Exception e) {
-          LOG.warn("Setting status for stages and Requests threw exception. ", e);
-        }
-      }
-    });
   }
 
   protected void updateSolrConfigurations() throws AmbariException {

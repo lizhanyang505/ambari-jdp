@@ -359,13 +359,10 @@ public class UpgradeContext {
       m_type = calculateUpgradeType(upgradeRequestMap, revertUpgrade);
 
       // !!! build all service-specific reversions
-      Set<RepositoryVersionEntity> priors = new HashSet<>();
       Map<String, Service> clusterServices = cluster.getServices();
       for (UpgradeHistoryEntity history : revertUpgrade.getHistory()) {
         String serviceName = history.getServiceName();
         String componentName = history.getComponentName();
-
-        priors.add(history.getFromReposistoryVersion());
 
         // if the service is no longer installed, do nothing
         if (!clusterServices.containsKey(serviceName)) {
@@ -380,14 +377,8 @@ public class UpgradeContext {
         m_targetRepositoryMap.put(serviceName, history.getFromReposistoryVersion());
       }
 
-      if (priors.size() != 1) {
-        String message = String.format("Upgrade from %s could not be reverted as there is no single "
-            + " repository across services.", revertUpgrade.getRepositoryVersion().getVersion());
-
-        throw new AmbariException(message);
-      }
-
-      m_repositoryVersion = priors.iterator().next();
+      // the "associated" repository of the revert is the target of what's being reverted
+      m_repositoryVersion = revertUpgrade.getRepositoryVersion();
 
       // !!! the version is used later in validators
       upgradeRequestMap.put(UPGRADE_REPO_VERSION_ID, m_repositoryVersion.getId().toString());
@@ -1061,11 +1052,11 @@ public class UpgradeContext {
 
   /**
    * Gets the set of services which will participate in the upgrade. The
-   * services available in the repository are comapred against those installed
+   * services available in the repository are compared against those installed
    * in the cluster to arrive at the final subset.
    * <p/>
    * In some cases, such as with a {@link RepositoryType#MAINT} repository, the
-   * subset can be further trimmed by determing that an installed services is
+   * subset can be further trimmed by determing that an installed service is
    * already at a high enough version and doesn't need to be upgraded.
    * <p/>
    * This method will also populate the source ({@link #m_sourceRepositoryMap})

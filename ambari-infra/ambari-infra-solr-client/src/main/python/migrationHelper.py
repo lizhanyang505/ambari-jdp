@@ -70,7 +70,7 @@ LIST_SOLR_COLLECTION_URL = '{0}/admin/collections?action=LIST&wt=json'
 CREATE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=CREATE&name={1}&collection.configName={2}&numShards={3}&replicationFactor={4}&maxShardsPerNode={5}&wt=json'
 DELETE_SOLR_COLLECTION_URL = '{0}/admin/collections?action=DELETE&name={1}&wt=json&async={2}'
 RELOAD_SOLR_COLLECTION_URL = '{0}/admin/collections?action=RELOAD&name={1}&wt=json'
-REQUEST_STATUS_SOLR_COLLECTION_URL = '{0}/admin/collections?action=REQUESTSTATUS&requestid={1}'
+REQUEST_STATUS_SOLR_COLLECTION_URL = '{0}/admin/collections?action=REQUESTSTATUS&requestid={1}&wt=json'
 CORE_DETAILS_URL = '{0}replication?command=details&wt=json'
 
 INFRA_SOLR_CLIENT_BASE_PATH = '/usr/lib/ambari-infra-solr-client/'
@@ -157,6 +157,9 @@ def get_keytab_and_principal(config):
 
 def create_solr_api_request_command(request_url, config, output=None):
   user='infra-solr'
+  if config.has_section('infra_solr'):
+    if config.has_option('infra_solr', 'user'):
+      user=config.get('infra_solr', 'user')
   kerberos_enabled='false'
   if config.has_section('cluster') and config.has_option('cluster', 'kerberos_enabled'):
     kerberos_enabled=config.get('cluster', 'kerberos_enabled')
@@ -943,9 +946,11 @@ def human_size(size_bytes):
   return "%s %s" % (formatted_size, suffix)
 
 def parse_size(human_size):
+  import locale
   units = {"bytes": 1, "KB": 1024, "MB": 1024**2, "GB": 1024**3, "TB": 1024**4 }
   number, unit = [string.strip() for string in human_size.split()]
-  return int(float(number)*units[unit])
+  locale.setlocale(locale.LC_ALL,'')
+  return int(locale.atof(number)*units[unit])
 
 def get_replica_index_size(config, core_url, replica):
   request = CORE_DETAILS_URL.format(core_url)
@@ -1908,7 +1913,7 @@ if __name__=="__main__":
   parser.add_option("--atlas-index-location", dest="atlas_index_location", type="string", help="location of the index backups (for atlas). required only if no backup path in the ini file")
   parser.add_option("--ranger-index-location", dest="ranger_index_location", type="string", help="location of the index backups (for ranger). required only if no backup path in the ini file")
 
-  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.3.1)")
+  parser.add_option("--version", dest="index_version", type="string", default="6.6.2", help="lucene index version for migration (6.6.2 or 7.5.0)")
   parser.add_option("--solr-async-request-tries", dest="solr_async_request_tries", type="int", default=400,  help="number of max tries for async Solr requests (e.g.: delete operation)")
   parser.add_option("--request-tries", dest="request_tries", type="int", help="number of tries for BACKUP/RESTORE status api calls in the request")
   parser.add_option("--request-time-interval", dest="request_time_interval", type="int", help="time interval between BACKUP/RESTORE status api calls in the request")

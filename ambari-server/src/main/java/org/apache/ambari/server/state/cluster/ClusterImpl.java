@@ -56,6 +56,7 @@ import org.apache.ambari.server.ServiceComponentHostNotFoundException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.agent.ExecutionCommand.KeyNames;
+import org.apache.ambari.server.agent.stomp.HostLevelParamsHolder;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
@@ -111,6 +112,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.state.BlueprintProvisioningState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -279,6 +281,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private STOMPComponentsDeleteHandler STOMPComponentsDeleteHandler;
+
+  @Inject
+  private HostLevelParamsHolder hostLevelParamsHolder;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -964,6 +969,25 @@ public class ClusterImpl implements Cluster {
     ClusterEntity clusterEntity = getClusterEntity();
     clusterEntity.setProvisioningState(provisioningState);
     clusterEntity = clusterDAO.merge(clusterEntity);
+  }
+
+  private boolean setBlueprintProvisioningState(BlueprintProvisioningState blueprintProvisioningState) {
+    boolean updated = false;
+    for (Service s : getServices().values()) {
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        if (!sc.isClientComponent()) {
+          for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+            HostComponentDesiredStateEntity desiredStateEntity = sch.getDesiredStateEntity();
+            if (desiredStateEntity.getBlueprintProvisioningState() != blueprintProvisioningState) {
+              desiredStateEntity.setBlueprintProvisioningState(blueprintProvisioningState);
+              hostComponentDesiredStateDAO.merge(desiredStateEntity);
+              updated = true;
+            }
+          }
+        }
+      }
+    }
+    return updated;
   }
 
   @Override
@@ -2790,6 +2814,19 @@ public class ClusterImpl implements Cluster {
         } catch (AmbariException ex) {
           LOG.warn("Failed to remove temporary configurations: {} / {}", e.getKey(), e.getValue(), ex);
         }
+      }
+      changeBlueprintProvisioningState(BlueprintProvisioningState.FINISHED);
+    }
+  }
+
+  private void changeBlueprintProvisioningState(BlueprintProvisioningState newState) {
+    boolean updated = setBlueprintProvisioningState(newState);
+    if (updated) {
+      try {
+        //host level params update
+        hostLevelParamsHolder.updateAllHosts();
+      } catch (AmbariException e) {
+        LOG.error("Topology update failed after setting blueprint provision state to {}", newState, e);
       }
     }
   }

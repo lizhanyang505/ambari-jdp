@@ -24,8 +24,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.logfeeder.common.LogEntryParseTester;
+import org.apache.ambari.logsearch.conf.LogSearchConfigApiConfig;
 import org.apache.ambari.logsearch.config.api.model.inputconfig.InputConfig;
 import org.apache.ambari.logsearch.configurer.LogSearchConfigConfigurer;
+import org.apache.ambari.logsearch.configurer.LogLevelManagerFilterConfigurer;
 import org.apache.ambari.logsearch.model.common.LSServerInputConfig;
 import org.apache.ambari.logsearch.model.common.LSServerLogLevelFilterMap;
 import org.apache.log4j.Logger;
@@ -47,7 +49,13 @@ public class ShipperConfigManager extends JsonManagerBase {
   private static final Logger logger = Logger.getLogger(ShipperConfigManager.class);
 
   @Inject
+  private LogSearchConfigApiConfig logSearchConfigApiConfig;
+
+  @Inject
   private LogSearchConfigConfigurer logSearchConfigConfigurer;
+
+  @Inject
+  private LogLevelManagerFilterConfigurer logLevelFilterConfigurer;
   
   public List<String> getServices(String clusterName) {
     return logSearchConfigConfigurer.getConfig().getServices(clusterName);
@@ -111,12 +119,24 @@ public class ShipperConfigManager extends JsonManagerBase {
   }
 
   public LSServerLogLevelFilterMap getLogLevelFilters(String clusterName) {
-    return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilters(clusterName));
+    if (logSearchConfigApiConfig.isSolrFilterStorage()) {
+      return new LSServerLogLevelFilterMap(logLevelFilterConfigurer.getLogLevelFilterManagerSolr().getLogLevelFilters(clusterName));
+    } else if (logSearchConfigApiConfig.isZkFilterStorage()) {
+      return new LSServerLogLevelFilterMap(logLevelFilterConfigurer.getLogLevelFilterManagerZK().getLogLevelFilters(clusterName));
+    } else {
+      return new LSServerLogLevelFilterMap(logSearchConfigConfigurer.getConfig().getLogLevelFilterManager().getLogLevelFilters(clusterName));
+    }
   }
 
   public Response setLogLevelFilters(String clusterName, LSServerLogLevelFilterMap request) {
     try {
-      logSearchConfigConfigurer.getConfig().setLogLevelFilters(clusterName, request.convertToApi());
+      if (logSearchConfigApiConfig.isSolrFilterStorage()) {
+        logLevelFilterConfigurer.getLogLevelFilterManagerSolr().setLogLevelFilters(clusterName, request.convertToApi());
+      } else if (logSearchConfigApiConfig.isZkFilterStorage()) {
+        logLevelFilterConfigurer.getLogLevelFilterManagerZK().setLogLevelFilters(clusterName, request.convertToApi());
+      } else {
+        logSearchConfigConfigurer.getConfig().getLogLevelFilterManager().setLogLevelFilters(clusterName, request.convertToApi());
+      }
       return Response.ok().build();
     } catch (Exception e) {
       logger.warn("Could not update log level filters", e);

@@ -29,10 +29,10 @@ from resource_management.core.logger import Logger
 
 
 def replace_underscores(function_to_decorate):
-  def wrapper(*args):
+  def wrapper(*args, **kwargs):
     self = args[0]
     name = args[1].replace("_", "-")
-    return function_to_decorate(self, name, *args[2:])
+    return function_to_decorate(self, name, *args[2:], **kwargs)
   return wrapper
 
 
@@ -215,7 +215,7 @@ class AptManager(GenericManager):
     pattern = re.compile("has missing dependency|E:")
 
     if r.code or (r.out and pattern.search(r.out)):
-      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (VERIFY_DEPENDENCY_CMD, code, out))
+      err_msg = Logger.filter_text("Failed to verify package dependencies. Execution of '%s' returned %s. %s" % (self.properties.verify_dependency_cmd, r.code, r.out))
       Logger.error(err_msg)
       return False
 

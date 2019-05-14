@@ -12,7 +12,7 @@
   <parent>
     <groupId>org.apache.ambari</groupId>
     <artifactId>ambari-project</artifactId>
-    <version>2.7.0.0.0</version>
+    <version>2.7.3.0.0</version>
     <relativePath>../ambari-project</relativePath>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -20,7 +20,7 @@
   <artifactId>ambari-server</artifactId>
   <packaging>${packagingFormat}</packaging>
   <name>Ambari Server</name>
-  <version>2.7.0.0.0</version>
+  <version>2.7.3.0.0</version>
   <description>Ambari Server</description>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -556,6 +556,10 @@
             <scriptFile>src/main/package/rpm/posttrans_server.sh</scriptFile>
             <fileEncoding>utf-8</fileEncoding>
           </posttransScriptlet>
+          <postremoveScriptlet>
+            <scriptFile>src/main/package/rpm/postremove.sh</scriptFile>
+            <fileEncoding>utf-8</fileEncoding>
+          </postremoveScriptlet>
           <needarch>x86_64</needarch>
           <mappings>
             <mapping>
@@ -657,7 +661,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.3</version>
+        <version>3.0.5</version>
         <configuration>
           <failOnError>false</failOnError>
           <threshold>Low</threshold>
@@ -1283,22 +1287,18 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-security</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlet</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-servlets</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
@@ -1736,12 +1736,11 @@
     <dependency>
       <groupId>com.jcraft</groupId>
       <artifactId>jsch</artifactId>
-      <version>0.1.45</version>
+      <version>0.1.54</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-util</artifactId>
-      <version>${jetty.version}</version>
     </dependency>
     <dependency>
       <groupId>commons-cli</groupId>
@@ -1796,7 +1795,7 @@
     <dependency>
       <groupId>org.kohsuke</groupId>
       <artifactId>libpam4j</artifactId>
-      <version>1.8</version>
+      <version>1.10</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
@@ -1804,8 +1803,18 @@
       <version>4.2.2</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-model</artifactId>
+      <version>2.0.0.AM1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.directory.api</groupId>
+      <artifactId>api-ldap-client-api</artifactId>
+      <version>2.0.0.AM1</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-all</artifactId>
+      <artifactId>apacheds-kerberos-codec</artifactId>
       <version>2.0.0-M24</version>
     </dependency>
     <dependency>
@@ -1816,6 +1825,10 @@
         <exclusion>
           <groupId>commons-collections</groupId>
           <artifactId>commons-collections</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.directory.api</groupId>
+          <artifactId>api-ldap-model</artifactId>
         </exclusion>
       </exclusions>
     </dependency>

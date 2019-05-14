@@ -24,6 +24,7 @@ __all__ = ["Script"]
 import re
 import os
 import sys
+import ssl
 import logging
 import platform
 import inspect
@@ -129,7 +130,7 @@ class Script(object):
 
   # Class variable
   tmp_dir = ""
-  force_https_protocol = "PROTOCOL_TLSv1_2"
+  force_https_protocol = "PROTOCOL_TLSv1_2" if hasattr(ssl, "PROTOCOL_TLSv1_2") else "PROTOCOL_TLSv1"
   ca_cert_file_path = None
 
   def load_structured_out(self):
@@ -260,10 +261,8 @@ class Script(object):
     stack_version_unformatted = str(default("/clusterLevelParams/stack_version", ""))
     stack_version_formatted = format_stack_version(stack_version_unformatted)
     if stack_version_formatted and check_stack_feature(StackFeature.ROLLING_UPGRADE, stack_version_formatted):
-      if command_name.lower() == "status":
-        request_version = default("/commandParams/request_version", None)
-        if request_version is not None:
-          return True
+      if command_name.lower() == "get_version":
+        return True
       else:
         # Populate version only on base commands
         return command_name.lower() == "start" or command_name.lower() == "install" or command_name.lower() == "restart"
@@ -359,8 +358,14 @@ class Script(object):
       ex.pre_raise()
       raise
     finally:
-      if self.should_expose_component_version(self.command_name):
-        self.save_component_version_to_structured_out(self.command_name)
+      try:
+        if self.should_expose_component_version(self.command_name):
+          self.save_component_version_to_structured_out(self.command_name)
+      except:
+        Logger.exception("Reporting component version failed")
+
+  def get_version(self, env):
+    pass
 
   def execute_prefix_function(self, command_name, afix, env):
     """
@@ -621,7 +626,6 @@ class Script(object):
 
     :return: protocol value
     """
-    import ssl
     return getattr(ssl, Script.get_force_https_protocol_name())
 
   @staticmethod
@@ -780,6 +784,15 @@ class Script(object):
 
     service_name = config['serviceName'] if 'serviceName' in config else None
     repos = CommandRepository(config['repositoryFile'])
+
+    from resource_management.libraries.functions import lzo_utils
+
+    # remove repos with 'GPL' tag when GPL license is not approved
+    repo_tags_to_skip = set()
+    if not lzo_utils.is_gpl_license_accepted():
+      repo_tags_to_skip.add("GPL")
+    repos.items = [r for r in repos.items if not (repo_tags_to_skip & r.tags)]
+
     repo_ids = [repo.repo_id for repo in repos.items]
     Logger.info("Command repositories: {0}".format(", ".join(repo_ids)))
     repos.items = [x for x in repos.items if (not x.applicable_services or service_name in x.applicable_services) ]
@@ -954,7 +967,7 @@ class Script(object):
     else:
       # To remain backward compatible with older stacks, only pass upgrade_type if available.
       # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
-      if True:
+      if "upgrade_type" in inspect.getargspec(self.stop).args:
         self.stop(env, upgrade_type=upgrade_type)
       else:
         if is_stack_upgrade:
@@ -1123,7 +1136,7 @@ class Script(object):
     if Script.instance is None:
 
       from resource_management.libraries.functions.default import default
-      use_proxy = default("/agentConfigParams/agent/use_system_proxy_settings", True)
+      use_proxy = default("/agentLevelParams/agentConfigParams/agent/use_system_proxy_settings", True)
       if not use_proxy:
         reconfigure_urllib2_opener(ignore_system_proxy=True)
 

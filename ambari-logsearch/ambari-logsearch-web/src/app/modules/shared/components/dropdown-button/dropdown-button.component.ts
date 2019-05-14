@@ -31,36 +31,41 @@ export class DropdownButtonComponent {
   label?: string;
 
   @Input()
-  buttonClass: string = 'btn-link';
+  buttonClass = 'btn-link';
 
   @Input()
   iconClass?: string;
 
   @Input()
-  hideCaret: boolean = false;
+  hideCaret = false;
 
   @Input()
-  showSelectedValue: boolean = true;
+  showSelectedValue = true;
 
-  @Input() options: ListItem[] = [];
+  @Input()
+  isRightAlign = false;
+
+  @Input()
+  isDropup = false;
+
+  @Input()
+  showCommonLabelWithSelection = false;
+
+  @Output()
+  selectItem: EventEmitter<any> = new EventEmitter();
+
+  // PROXY PROPERTIES TO DROPDOWN LIST COMPONENT
+  @Input()
+  options: ListItem[] = [];
 
   @Input()
   listItemArguments: any[] = [];
 
   @Input()
-  isMultipleChoice: boolean = false;
+  isMultipleChoice = false;
 
   @Input()
-  isRightAlign: boolean = false;
-
-  @Input()
-  isDropup: boolean = false;
-
-  @Input()
-  showCommonLabelWithSelection: boolean = false;
-
-  @Output()
-  selectItem: EventEmitter<any> = new EventEmitter();
+  useClearToDefaultSelection = false;
 
   protected selectedItems?: ListItem[] = [];
 
@@ -84,7 +89,19 @@ export class DropdownButtonComponent {
 
   constructor(protected utils: UtilsService) {}
 
-  updateSelection(updates: ListItem | ListItem[]): void {
+  clearSelection(silent: boolean = false) {
+    let hasChange = false;
+    this.options.forEach((item: ListItem) => {
+      hasChange = hasChange || item.isChecked;
+      item.isChecked = false;
+    });
+    if (!silent && hasChange) {
+      this.selectItem.emit(this.isMultipleChoice ? [] : undefined);
+    }
+  }
+
+  updateSelection(updates: ListItem | ListItem[], callOnChange: boolean = true): boolean {
+    let hasChange = false;
     if (updates && (!Array.isArray(updates) || updates.length)) {
       const items: ListItem[] = Array.isArray(updates) ? updates : [updates];
       if (this.isMultipleChoice) {
@@ -92,6 +109,7 @@ export class DropdownButtonComponent {
           if (this.options && this.options.length) {
             const itemToUpdate: ListItem = this.options.find((option: ListItem) => this.utils.isEqual(option.value, item.value));
             if (itemToUpdate) {
+              hasChange = hasChange || itemToUpdate.isChecked !== item.isChecked;
               itemToUpdate.isChecked = item.isChecked;
             }
           }
@@ -99,7 +117,9 @@ export class DropdownButtonComponent {
       } else {
         const selectedItem: ListItem = Array.isArray(updates) ? updates[0] : updates;
         this.options.forEach((item: ListItem) => {
+          const checkedStateBefore = item.isChecked;
           item.isChecked = this.utils.isEqual(item.value, selectedItem.value);
+          hasChange = hasChange || checkedStateBefore !== item.isChecked;
         });
       }
     } else {
@@ -107,8 +127,11 @@ export class DropdownButtonComponent {
     }
     const checkedItems = this.options.filter((option: ListItem): boolean => option.isChecked);
     this.selection = checkedItems;
-    const selectedValues = checkedItems.map((option: ListItem): any => option.value);
-    this.selectItem.emit(this.isMultipleChoice ? selectedValues : selectedValues.shift());
+    if (hasChange) {
+      const selectedValues = checkedItems.map((option: ListItem): any => option.value);
+      this.selectItem.emit(this.isMultipleChoice ? selectedValues : selectedValues.shift());
+    }
+    return hasChange;
   }
 
 }

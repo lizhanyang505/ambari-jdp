@@ -628,34 +628,46 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   },
 
   /**
-   * disable saving recommended value for current config
+   * disable saving recommended value for current config. Remove recommendation for useroverriden values
    * @param config
    * @param {boolean} saveRecommended
    * @method removeCurrentFromDependentList
    */
   removeCurrentFromDependentList: function (config, saveRecommended) {
-    var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
-    if (recommendation) this.saveRecommendation(recommendation, saveRecommended);
+    let name = config.get('name'),
+      fileName = config.get('filename'),
+      group = config.get('group.name');
+    var recommendation = this.getRecommendation(name, fileName, group);
+    if (recommendation) {
+      if (config.get('didUserOverrideValue')) {
+        this.removeRecommendation(name, fileName, group);
+      } else {
+        this.saveRecommendation(recommendation, saveRecommended);
+      }
+    }
   },
 
   updateAttributesFromTheme: function (serviceName) {
     this.prepareSectionsConfigProperties(serviceName);
-    const serviceConfigs = this.get('stepConfigs').findProperty('serviceName', serviceName).get('configs'),
-      configConditions = App.ThemeCondition.find().filter(condition => {
-        const dependentConfigName = condition.get('configName'),
-          dependentConfigFileName = condition.get('fileName'),
-          configsToDependOn = condition.getWithDefault('configs', []);
-        return serviceConfigs.some(serviceConfig => {
-          const serviceConfigName = Em.get(serviceConfig, 'name'),
-            serviceConfigFileName = Em.get(serviceConfig, 'filename');
-          return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
-            || configsToDependOn.some(config => {
-              const {configName, fileName} = config;
-              return serviceConfigName === configName && serviceConfigFileName === fileName;
-            });
+    const service = this.get('stepConfigs').findProperty('serviceName', serviceName);
+    if (service) {
+      const serviceConfigs = service.get('configs'),
+        configConditions = App.ThemeCondition.find().filter(condition => {
+          const dependentConfigName = condition.get('configName'),
+            dependentConfigFileName = condition.get('fileName'),
+            configsToDependOn = condition.getWithDefault('configs', []);
+          return serviceConfigs.some(serviceConfig => {
+            const serviceConfigName = Em.get(serviceConfig, 'name'),
+              serviceConfigFileName = Em.get(serviceConfig, 'filename');
+            return (serviceConfigName === dependentConfigName && serviceConfigFileName === dependentConfigFileName)
+              || configsToDependOn.some(config => {
+                const {configName, fileName} = config;
+                return serviceConfigName === configName && serviceConfigFileName === fileName;
+              });
+          });
         });
-      });
-    this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+      this.updateAttributesFromConditions(configConditions, serviceConfigs, serviceName);
+    }
   },
 
   prepareSectionsConfigProperties: function (serviceName) {

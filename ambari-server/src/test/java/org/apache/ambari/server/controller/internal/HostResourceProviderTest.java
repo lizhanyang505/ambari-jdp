@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.eq;
@@ -158,6 +159,8 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Capture<String> rackChangeAffectedClusterName = EasyMock.newCapture();
     managementController.registerRackChange(capture(rackChangeAffectedClusterName));
     EasyMock.expectLastCall().once();
+    expect(managementController.getBlueprintProvisioningStates(anyLong(), anyLong()))
+        .andReturn(Collections.EMPTY_MAP).anyTimes();
 
 
     Clusters clusters = injector.getInstance(Clusters.class);
@@ -1401,7 +1404,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     Injector injector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
-        PartialNiceMockBinder.newBuilder().addConfigsBindings().addFactoriesInstallBinding().build().configure(binder());
+        PartialNiceMockBinder.newBuilder().addConfigsBindings().addLdapBindings().addFactoriesInstallBinding().build().configure(binder());
 
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));

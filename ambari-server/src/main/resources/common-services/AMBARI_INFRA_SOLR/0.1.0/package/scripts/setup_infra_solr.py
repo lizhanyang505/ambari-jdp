@@ -67,7 +67,7 @@ def setup_infra_solr(name = None):
          group=params.user_group
          )
 
-    File(format("{infra_solr_conf}/log4j.properties"),
+    File(format("{infra_solr_conf}/log4j2.xml"),
          content=InlineTemplate(params.solr_log4j_content),
          owner=params.infra_solr_user,
          group=params.user_group
@@ -91,13 +91,13 @@ def setup_infra_solr(name = None):
            owner=params.infra_solr_user,
            group=params.user_group,
            mode=0640)
-
-    File(os.path.join(params.limits_conf_dir, 'infra-solr.conf'),
-         owner='root',
-         group='root',
-         mode=0644,
-         content=Template("infra-solr.conf.j2")
-         )
+    if os.path.exists(params.limits_conf_dir):
+      File(os.path.join(params.limits_conf_dir, 'infra-solr.conf'),
+           owner='root',
+           group='root',
+           mode=0644,
+           content=Template("infra-solr.conf.j2")
+      )
 
   elif name == 'client':
     solr_cloud_util.setup_solr_client(params.config)

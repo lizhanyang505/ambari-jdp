@@ -185,13 +185,13 @@ public class TimelineMetricMetadataManager {
       }
     }
 
-      metricMetadataSync = new TimelineMetricMetadataSync(this);
+    metricMetadataSync = new TimelineMetricMetadataSync(this);
     // Schedule the executor to sync to store
     if (scheduleMetadateSync) {
       executorService.scheduleWithFixedDelay(metricMetadataSync,
-          metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
-          metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
-          TimeUnit.SECONDS);
+        metricsConf.getInt(METRICS_METADATA_SYNC_INIT_DELAY, 120), // 2 minutes
+        metricsConf.getInt(METRICS_METADATA_SYNC_SCHEDULE_DELAY, 300), // 5 minutes
+        TimeUnit.SECONDS);
     }
     // Read from store and initialize map
     try {
@@ -299,7 +299,6 @@ public class TimelineMetricMetadataManager {
       apps = new ConcurrentHashMap<>();
       if (timelineMetricHostMetadata == null) {
         TimelineMetricHostMetadata newHostMetadata = new TimelineMetricHostMetadata(apps);
-        newHostMetadata.setUuid(getUuidForHostname(hostname, true));
         HOSTED_APPS_MAP.put(hostname, newHostMetadata);
       } else {
         HOSTED_APPS_MAP.get(hostname).setHostedApps(apps);
@@ -453,17 +452,19 @@ public class TimelineMetricMetadataManager {
     }
 
     byte[] uuid = uuidGenStrategy.computeUuid(hostname, HOSTNAME_UUID_LENGTH);
-    if (uuidHostMap.containsKey(new TimelineMetricUuid(uuid))) {
-      LOG.error("Duplicate key computed for " + hostname +", Collides with  " + uuidHostMap.get(uuid));
+    TimelineMetricUuid timelineMetricUuid = new TimelineMetricUuid(uuid);
+    if (uuidHostMap.containsKey(timelineMetricUuid) && !hostname.equals(uuidHostMap.get(timelineMetricUuid))) {
+      LOG.error("Duplicate key computed for " + hostname +", Collides with  " + uuidHostMap.get(timelineMetricUuid));
       return null;
     }
 
-    if (timelineMetricHostMetadata == null) {
-      timelineMetricHostMetadata = new TimelineMetricHostMetadata();
-      HOSTED_APPS_MAP.put(hostname, timelineMetricHostMetadata);
+    timelineMetricHostMetadata = HOSTED_APPS_MAP.computeIfAbsent(hostname, k -> new TimelineMetricHostMetadata());
+    if (timelineMetricHostMetadata.getUuid() == null) {
+      timelineMetricHostMetadata.setUuid(uuid);
     }
-    timelineMetricHostMetadata.setUuid(uuid);
-    uuidHostMap.put(new TimelineMetricUuid(uuid), hostname);
+    if (!uuidHostMap.containsKey(timelineMetricUuid)) {
+      uuidHostMap.put(timelineMetricUuid, hostname);
+    }
 
     return uuid;
   }
@@ -501,6 +502,7 @@ public class TimelineMetricMetadataManager {
       return null;
     }
 
+    timelineMetricMetadata = METADATA_CACHE.get(key);
     if (timelineMetricMetadata == null) {
       timelineMetricMetadata = new TimelineMetricMetadata();
       timelineMetricMetadata.setMetricName(timelineClusterMetric.getMetricName());
@@ -509,9 +511,14 @@ public class TimelineMetricMetadataManager {
       METADATA_CACHE.put(key, timelineMetricMetadata);
     }
 
-    timelineMetricMetadata.setUuid(uuid.uuid);
+    if (timelineMetricMetadata.getUuid() == null) {
+      timelineMetricMetadata.setUuid(uuid.uuid);
+    }
     timelineMetricMetadata.setIsPersisted(false);
-    uuidKeyMap.put(uuid, key);
+
+    if (!uuidKeyMap.containsKey(uuid)) {
+      uuidKeyMap.put(uuid, key);
+    }
     return uuid.uuid;
   }
 
@@ -592,7 +599,11 @@ public class TimelineMetricMetadataManager {
       timelineMetric.setInstanceId(key.instanceId);
 
       byte[] hostUuid = ArrayUtils.subarray(uuid, TIMELINE_METRIC_UUID_LENGTH, HOSTNAME_UUID_LENGTH + TIMELINE_METRIC_UUID_LENGTH);
-      timelineMetric.setHostName(uuidHostMap.get(new TimelineMetricUuid(hostUuid)));
+      String hostname = uuidHostMap.get(new TimelineMetricUuid(hostUuid));
+      if (hostname == null) {
+        return null;
+      }
+      timelineMetric.setHostName(hostname);
       return timelineMetric;
     }
   }
@@ -736,7 +747,7 @@ public class TimelineMetricMetadataManager {
    * @throws IOException
    */
   public Map<String, List<TimelineMetricMetadata>> getTimelineMetricMetadataByAppId(String appId, String metricPattern,
-                                                                             boolean includeBlacklistedMetrics) throws SQLException, IOException {
+                                                                                    boolean includeBlacklistedMetrics) throws SQLException, IOException {
 
     Map<TimelineMetricMetadataKey, TimelineMetricMetadata> metadata = getMetadataCache();
 
@@ -839,8 +850,8 @@ public class TimelineMetricMetadataManager {
           cacheValue.setType(oldValue.getType());
           cacheValue.setIsWhitelisted(oldValue.isWhitelisted());
         } else if (oldValue.getSeriesStartTime() < cacheValue.getSeriesStartTime() &&
-                   cacheValue.getSeriesStartTime() != 0L &&
-                   cacheValue.isWhitelisted())
+          cacheValue.getSeriesStartTime() != 0L &&
+          cacheValue.isWhitelisted())
         {
           LOG.info(String.format("Updating startTime for %s", key));
           cacheValue.setSeriesStartTime(oldValue.getSeriesStartTime());

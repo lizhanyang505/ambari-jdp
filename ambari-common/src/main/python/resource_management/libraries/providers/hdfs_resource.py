@@ -26,6 +26,7 @@ import os
 import pwd
 import re
 import time
+from urlparse import urlparse
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
@@ -58,9 +59,14 @@ RESOURCE_TO_JSON_FIELDS = {
 }
 
 EXCEPTIONS_TO_RETRY = {
-  # "ExceptionName": (try_count, try_sleep_seconds)
-  "LeaseExpiredException": (20, 6),
-  "RetriableException": (20, 6),
+  # ("ExceptionName"): ("required text fragment", try_count, try_sleep_seconds)
+
+  # Happens when multiple nodes try to put same file at the same time.
+  # Needs a longer retry time, to wait for other nodes success.
+  "FileNotFoundException": (" does not have any open files", 6, 30),
+
+  "LeaseExpiredException": ("", 20, 6),
+  "RetriableException": ("", 20, 6),
 }
 
 class HdfsResourceJar:
@@ -82,15 +88,19 @@ class HdfsResourceJar:
       nameservices = main_resource.resource.nameservices
 
     # non-federated cluster
-    if not nameservices:
+    if not nameservices or len(nameservices) < 2:
       self.action_delayed_for_nameservice(None, action_name, main_resource)
     else:
+      default_fs_protocol = urlparse(main_resource.resource.default_fs).scheme
+
+      if not default_fs_protocol or default_fs_protocol == "viewfs":
+        protocol = dfs_type.lower()
+      else:
+        protocol = default_fs_protocol
+
       for nameservice in nameservices:
         try:
-          if not dfs_type:
-            raise Fail("<serviceType> for fileSystem service should be set in metainfo.xml")
-          nameservice = dfs_type.lower() + "://" + nameservice
-
+          nameservice = protocol + "://" + nameservice
           self.action_delayed_for_nameservice(nameservice, action_name, main_resource)
         except namenode_ha_utils.NoActiveNamenodeException as ex:
           # one of ns can be down (during initial start forexample) no need to worry for federated cluster
@@ -173,6 +183,11 @@ class WebHDFSCallException(Fail):
       return self.result_message["RemoteException"]["exception"]
     return None
 
+  def get_exception_text(self):
+    if isinstance(self.result_message, dict) and "RemoteException" in self.result_message and "message" in self.result_message["RemoteException"]:
+      return self.result_message["RemoteException"]["message"]
+    return None
+
 class WebHDFSUtil:
   def __init__(self, hdfs_site, nameservice, run_user, security_enabled, logoutput=None):
     self.is_https_enabled = is_https_enabled_in_hdfs(hdfs_site['dfs.http.policy'], hdfs_site['dfs.https.enable'])
@@ -199,9 +214,15 @@ class WebHDFSUtil:
       return self._run_command(*args, **kwargs)
     except WebHDFSCallException as ex:
       exception_name = ex.get_exception_name()
+      exception_text = ex.get_exception_text()
       if exception_name in EXCEPTIONS_TO_RETRY:
-        try_count, try_sleep = EXCEPTIONS_TO_RETRY[exception_name]
-        last_exception = ex
+
+        required_text, try_count, try_sleep = EXCEPTIONS_TO_RETRY[exception_name]
+
+        if not required_text or (exception_text and required_text in exception_text):
+          last_exception = ex
+        else:
+          raise
       else:
         raise
 
@@ -249,6 +270,8 @@ class WebHDFSUtil:
 
       if file_to_put:
         cmd += ["--data-binary", "@"+file_to_put, "-H", "Content-Type: application/octet-stream"]
+      else:
+        cmd += ["-d", "", "-H", "Content-Length: 0"]
 
     if self.security_enabled:
       cmd += ["--negotiate", "-u", ":"]

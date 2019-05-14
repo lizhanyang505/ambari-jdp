@@ -576,7 +576,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
           sender: this,
           data: {
             context,
-            serviceName: serviceName.toUpperCase(),
+            serviceName: serviceName,
             state: serviceHealth,
             query: requestQuery
           },
@@ -1176,10 +1176,21 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.MasterComponent.find().toArray().concat(App.SlaveComponent.find().toArray()).filterProperty('service.serviceName', this.get('content.serviceName'));
   }.property('content.serviceName'),
 
-  isStartDisabled: Em.computed.or('isPending', 'content.isStarted'),
+  isStartDisabled: function () {
+    let allComponentsStarted = true;
+    if (this.get('isPending')) return true;
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('installedCount') > 0)
+        allComponentsStarted = false;
+    });
+    return allComponentsStarted && this.get('content.isStarted');
+  }.property('content.isStarted', 'isPending'),
+
 
   isStopDisabled: function () {
+    let allComponentsStopped = true;
     if(this.get('isPending')) return true;
+
     if (App.get('isHaEnabled') && this.get('content.serviceName') == 'HDFS' && this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
@@ -1189,7 +1200,13 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if (this.get('content.serviceName') == 'PXF' && App.HostComponent.find().filterProperty('componentName', 'PXF').someProperty('workStatus', App.HostComponentStatus.started)) {
       return false;
     }
-    return !this.get('content.isStarted');
+
+    this.get('nonClientServiceComponents').forEach(function (component) {
+      if (component.get('startedCount') > 0)
+        allComponentsStopped = false;
+    });
+
+    return allComponentsStopped && !this.get('content.isStarted');
   }.property('content.isStarted','isPending', 'App.isHaEnabled'),
 
   isSmokeTestDisabled: function () {
@@ -1521,8 +1538,8 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: popupPrimary,
       primaryClass: 'btn-danger',
       disablePrimary: Em.computed.alias('controller.isRecommendationInProgress'),
-      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper', 'controller.changedProperties.length:modal-full-width'],
-      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-lg'], []),
+      classNameBindings: ['controller.changedProperties.length:common-modal-wrapper'],
+      modalDialogClasses: Em.computed.ifThenElse('controller.changedProperties.length', ['modal-xlg'], []),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/delete_service_warning_popup'),
         warningMessage: new Em.Handlebars.SafeString(warningMessage)

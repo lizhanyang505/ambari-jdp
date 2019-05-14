@@ -78,8 +78,6 @@ else:
 
 metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
 
-random_metric_collector_host = select_metric_collector_hosts_from_hostnames(ams_collector_hosts)
-
 if 'cluster-env' in config['configurations'] and \
     'metrics_collector_external_port' in config['configurations']['cluster-env']:
   metric_collector_port = config['configurations']['cluster-env']['metrics_collector_external_port']
@@ -184,6 +182,9 @@ ams_grafana_protocol = default("/configurations/ams-grafana-ini/protocol", 'http
 ams_grafana_cert_file = default("/configurations/ams-grafana-ini/cert_file", '/etc/ambari-metrics/conf/ams-grafana.crt')
 ams_grafana_cert_key = default("/configurations/ams-grafana-ini/cert_key", '/etc/ambari-metrics/conf/ams-grafana.key')
 ams_grafana_ca_cert = default("/configurations/ams-grafana-ini/ca_cert", None)
+
+grafana_connect_attempts = max(int(default('/configurations/ams-grafana-env/metrics_grafana_connect_attempts', 15)), 1)
+grafana_connect_retry_delay = max(int(default('/configurations/ams-grafana-env/metrics_grafana_connect_retry_delay', 20)), 1)
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 

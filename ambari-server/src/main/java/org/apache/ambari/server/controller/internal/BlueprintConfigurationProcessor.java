@@ -40,6 +40,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -1734,6 +1737,11 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
 
+      if (origValue == null) {
+        LOG.info("Property {} is null, skipping search for host group placeholder", propertyName);
+        return null;
+      }
+
       HostGroups hostGroups = new HostGroups(topology, propertyName);
 
       //todo: getHostStrings (?)
@@ -1774,6 +1782,11 @@ public class BlueprintConfigurationProcessor {
                                                     String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology) {
+      if (origValue == null) {
+        LOG.info("Property {} is null, skipping search for host group placeholder", propertyName);
+        return Collections.emptyList();
+      }
+
       //todo: getHostStrings
       Matcher m = HostGroup.HOSTGROUP_REGEX.matcher(origValue);
       Set<String> hostGroups = new HashSet<>();
@@ -1943,7 +1956,7 @@ public class BlueprintConfigurationProcessor {
 
             throw new IllegalArgumentException(
               String.format("Unable to update configuration property '%s' with topology information. " +
-                "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
+                "Component '%s' is mapped to an invalid number of host groups '%s'.", propertyName, component, matchingGroupCount));
           }
         }
       }
@@ -2851,7 +2864,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
-    singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
     singleHostTopologyUpdaters.put("ranger-env", rangerEnvPropsMap);
     singleHostTopologyUpdaters.put("ranger-yarn-audit", rangerYarnAuditPropsMap);
@@ -2886,6 +2898,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
     multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
     multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
+    multiHostTopologyUpdaters.put("application-properties", atlasPropsMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -2905,7 +2918,7 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
-    hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
+    hbaseSiteMap.put("hbase.rootdir", new OptionalSingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false, false, true));
@@ -2944,6 +2957,10 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.timeline-service.webapp.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
     yarnSiteMap.put("yarn.timeline-service.webapp.https.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
     yarnSiteMap.put("yarn.log.server.web-service.url", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
+
+    // TIMELINE_READER
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.address", new MultipleHostTopologyUpdater("TIMELINE_READER"));
+    yarnSiteMap.put("yarn.timeline-service.reader.webapp.https.address", new MultipleHostTopologyUpdater("TIMELINE_READER"));
 
     // HIVE_SERVER
     hiveSiteMap.put("hive.server2.authentication.ldap.url", new SingleHostTopologyUpdater("HIVE_SERVER2"));
@@ -3153,7 +3170,8 @@ public class BlueprintConfigurationProcessor {
     multiOozieSiteMap.put("oozie.service.ProxyUserService.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
 
     // ATLAS
-    atlasPropsMap.put("atlas.server.bind.address", new SingleHostTopologyUpdater("ATLAS_SERVER"));
+    atlasPropsMap.put("atlas.server.bind.address", new MultipleHostTopologyUpdater("ATLAS_SERVER"));
+    atlasPropsMap.put("atlas.rest.address", new MultipleHostTopologyUpdater("ATLAS_SERVER", ',', true, true, true));
     atlasPropsMap.put("atlas.kafka.bootstrap.servers", new MultipleHostTopologyUpdater("KAFKA_BROKER"));
     atlasPropsMap.put("atlas.kafka.zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     atlasPropsMap.put("atlas.graph.index.search.solr.zookeeper-url", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER", ',', false, true, true));
@@ -3372,7 +3390,7 @@ public class BlueprintConfigurationProcessor {
    *          to this).
    * @throws ConfigurationTopologyException
    */
-  private void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
+  protected void setStackToolsAndFeatures(Configuration configuration, Set<String> configTypesUpdated)
     throws ConfigurationTopologyException {
     ConfigHelper configHelper = clusterTopology.getAmbariContext().getConfigHelper();
     Stack stack = clusterTopology.getBlueprint().getStack();
@@ -3381,8 +3399,10 @@ public class BlueprintConfigurationProcessor {
 
     StackId stackId = new StackId(stackName, stackVersion);
 
-    Set<String> properties = Sets.newHashSet(ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
-      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY, ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
+    Set<String> properties = Sets.newHashSet(
+      ConfigHelper.CLUSTER_ENV_STACK_NAME_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_ROOT_PROPERTY,
+      ConfigHelper.CLUSTER_ENV_STACK_TOOLS_PROPERTY,
       ConfigHelper.CLUSTER_ENV_STACK_FEATURES_PROPERTY,
       ConfigHelper.CLUSTER_ENV_STACK_PACKAGES_PROPERTY);
 
@@ -3392,16 +3412,33 @@ public class BlueprintConfigurationProcessor {
 
       for( String property : properties ){
         if (clusterEnvDefaultProperties.containsKey(property)) {
-          configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property,
-            clusterEnvDefaultProperties.get(property));
-
-          // make sure to include the configuration type as being updated
-          configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+          String newValue = clusterEnvDefaultProperties.get(property);
+          String previous = configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, property, newValue);
+          if (!Objects.equals(
+            trimValue(previous, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property),
+            trimValue(newValue, stack, CLUSTER_ENV_CONFIG_TYPE_NAME, property))) {
+            // in case a property is updated make sure to include cluster-env as being updated
+            configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+          }
         }
       }
     } catch( AmbariException ambariException ){
       throw new ConfigurationTopologyException("Unable to retrieve the stack tools and features",
         ambariException);
+    }
+  }
+
+  private @Nullable String trimValue(@Nullable String value,
+                                     @NotNull Stack stack,
+                                     @NotNull String configType,
+                                     @NotNull String propertyName) {
+    if (null == value) {
+      return null;
+    }
+    else {
+      TrimmingStrategy trimmingStrategy =
+        PropertyValueTrimmingStrategyDefiner.defineTrimmingStrategy(stack, propertyName, configType);
+      return trimmingStrategy.trim(value);
     }
   }
 
