@@ -134,7 +134,7 @@
 
     <group xsi:type="cluster" name="CONVERT_HIVE_TABLES" title="Convert Hive Tables">
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Convert Hive Tables">
-        <task xsi:type="execute" hosts="any">
+        <task xsi:type="execute" hosts="any" timeout-config="upgrade.parameter.convert.hive.tables.timeout">
           <script>scripts/pre_upgrade.py</script>
           <function>convert_tables</function>
         </task>
@@ -358,9 +358,7 @@
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Ranger Admin database and Ranger Audit
-            database on
-            the following host(s): {{hosts.all}}.
+          <message>Before continuing, please restore the Ranger Admin database on the following host(s): {{hosts.all}}.
           </message>
         </task>
       </execute-stage>
@@ -459,6 +457,10 @@
         <task xsi:type="configure" id="hdfs_user_agent"/>
       </execute-stage>
 
+      <execute-stage service="HDFS" component="HDFS_CLIENT" title="Set properties for GCS">
+        <task xsi:type="configure" id="gcs_properties" />
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Remove invalid HADOOP_OPTS and YARN_OPTS">
         <task xsi:type="configure" id="hdp_30_remove_invalid_hadoop_and_yarn_opts"/>
@@ -479,6 +481,12 @@
 
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Add Timeline Reader OPTS">
         <task xsi:type="configure" id="hdp_30_add_timeline_reader_opts"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Create yarn-system queue based on cluster capacity">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.YarnNodeManagerCapacityCalculation">
+          <summary>Create yarn-system queue based on cluster capacity</summary>
+        </task>
       </execute-stage>
 
       <!-- Do this last to convert any variable which remained -->
@@ -519,6 +527,13 @@
 
       <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Removing Spark classpath entries from ATS">
         <task xsi:type="configure" id="hdp_30_remove_spark_classpaths_injections" />
+      </execute-stage>
+
+      <execute-stage service="YARN" title="Apply config changes for Timeline Reader">
+        <task xsi:type="server_action"
+              class="org.apache.ambari.server.serveraction.upgrades.FixTimelineReaderAddress">
+          <summary>Setting YARN Timeline Reader Url</summary>
+        </task>
       </execute-stage>
 
       <execute-stage>
@@ -569,6 +584,12 @@
         <task xsi:type="configure" id="hdp_30_hive_log_file" />
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Update Hive hook for DAS">
+        <task xsi:type="configure" id="hdp_3_0_config_for_hive_das_hook">
+          <summary>Update org.apache.hadoop.hive.ql.hooks.ATSHook to org.apache.hadoop.hive.ql.hooks.HiveProtoLoggingHook</summary>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER_INTERACTIVE" title="Update HSI hive jar path">
         <task xsi:type="configure" id="update_hsi_hive_jar_path" />
       </execute-stage>
@@ -577,8 +598,17 @@
         <task xsi:type="configure" id="hdp_30_hsi_log_file" />
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Update Hive GC JVM args">
+        <task xsi:type="configure" id="hdp_30_hs_gc_jvm_args" />
+      </execute-stage>
+
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Updating Ranger Hive Policy Rest SSL File path config">
         <task xsi:type="configure" id="hdp_3_0_updating_ranger_hive_policy_rest_ssl_file" />
+      </execute-stage>
+
+      <!--TEZ-->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Update Tez GC JVM args">
+        <task xsi:type="configure" id="hdp_30_tez_gc_jvm_args" />
       </execute-stage>
 
       <!--OOZIE-->
@@ -603,6 +633,10 @@
         <task xsi:type="configure" id="hdp_3_0_add_ranger_tagsync_cookie_enabled_config"/>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_TAGSYNC" title="Updating Tagsync security protocol for Kafka">
+        <task xsi:type="configure" id="hdp_3_0_x_tagsync_plaintext_sasl_removal"/>
+      </execute-stage>
+
       <!--ATLAS-->
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas configurations.">
         <task xsi:type="configure" id="atlas_upgrade_configuration"/>
@@ -610,6 +644,10 @@
 
       <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Adding Janus-graph logger configurations for Atlas.">
         <task xsi:type="configure" id="atlas_log4j_adding_janus_graph"/>
+      </execute-stage>
+
+      <execute-stage service="ATLAS" component="ATLAS_SERVER" title="Updating Atlas security protocol for Kafka">
+        <task xsi:type="configure" id="hdp_3_0_x_atlas_plaintext_sasl_removal"/>
       </execute-stage>
 
       <!--KAFKA-->
@@ -629,6 +667,13 @@
         <task xsi:type="configure" id="add_skip_log_message_format_version">
           <summary>Update kafka server properties to add log.message.format.version if not
             present.
+          </summary>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Remove deprecated PLAINTEXTSASL usage">
+        <task xsi:type="configure" id="hdp_3_0_x_kafka_plaintext_sasl_removal">
+          <summary>Remove deprecated PLAINTEXTSASL protocol in flavor of SASL_PLAINTEXT.
           </summary>
         </task>
       </execute-stage>
@@ -997,7 +1042,7 @@
 
     <group xsi:type="cluster" name="MOVE_HIVE_TABLES" title="Move Hive Tables">
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Move Hive Tables">
-        <task xsi:type="execute" hosts="any">
+        <task xsi:type="execute" hosts="any" timeout-config="upgrade.parameter.move.hive.tables.timeout">
           <script>scripts/post_upgrade.py</script>
           <function>move_tables</function>
         </task>

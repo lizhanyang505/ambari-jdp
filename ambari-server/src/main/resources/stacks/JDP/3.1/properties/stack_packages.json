@@ -663,34 +663,6 @@
           ]
         }
       },
-      "FUSIONDB": {
-        "FUSIONDB": {
-          "STACK-SELECT-PACKAGE": "fusiondb",
-          "INSTALL": [
-            "fusiondb"
-          ],
-          "PATCH": [
-            "fusiondb"
-          ],
-          "STANDARD": [
-            "fusiondb"
-          ]
-        }
-      },
-      "CAI": {
-        "CAI": {
-          "STACK-SELECT-PACKAGE": "cai",
-          "INSTALL": [
-            "cai"
-          ],
-          "PATCH": [
-            "cai"
-          ],
-          "STANDARD": [
-            "cai"
-          ]
-        }
-      },
       "TEZ": {
         "TEZ_CLIENT": {
           "STACK-SELECT-PACKAGE": "tez-client",
@@ -965,18 +937,6 @@
           "current_dir": "{0}/current/superset/conf"
         }
       ],
-      "fusiondb": [
-        {
-          "conf_dir": "/etc/fusiondb/conf",
-          "current_dir": "{0}/current/fusiondb/conf"
-        }
-      ],
-      "cai": [
-        {
-          "conf_dir": "/etc/cai/conf",
-          "current_dir": "{0}/current/cai/conf"
-        }
-      ],
       "tez": [
         {
           "conf_dir": "/etc/tez/conf",
@@ -1053,12 +1013,6 @@
       },
       "SUPERSET": {
         "packages": ["superset"]
-      },
-       "FUSIONDB": {
-        "packages": ["fusiondb"]
-      },
-       "CAI": {
-        "packages": ["cai"]
       },
       "SYSTEMML": {
         "packages": []
