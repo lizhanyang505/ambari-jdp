@@ -87,7 +87,7 @@ clickhouse_log_count = default('/configurations/clickhouse-env/clickhouse_log_co
 java64_home = config['ambariLevelParams']['java_home']
 
 # clickhouse cluster configurations
-clickhouse_hosts = config['clusterHostInfo']['clickhouse_server_hosts']
+clickhouse_hosts = config['clusterHostInfo']['clickhouse_hosts']
 clickhouse_hosts.sort()
 remote_servers = config['configurations']['clickhouse-config']['remote_servers']
 

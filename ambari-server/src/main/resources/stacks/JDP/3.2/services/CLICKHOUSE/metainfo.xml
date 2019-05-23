@@ -20,7 +20,66 @@
   <services>
     <service>
       <name>CLICKHOUSE</name>
+      <displayName>ClickHouse</displayName>
+      <comment>Open source distributed column-oriented DBMS.</comment>
       <version>19.4.0</version>
+      <components>
+        <component>
+          <name>CLICKHOUSE</name>
+          <displayName>ClickHouse</displayName>
+          <category>MASTER</category>
+          <cardinality>1+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <rollingRestartSupported>true</rollingRestartSupported>
+          <dependencies>
+            <dependency>
+              <name>ZOOKEEPER/ZOOKEEPER_SERVER</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+          <commandScript>
+            <script>scripts/clickhouse_server.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+        </component>
+      </components>
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+      <requiredServices>
+        <service>ZOOKEEPER</service>
+      </requiredServices>
+      <configuration-dependencies>
+        <config-type>clickhouse-config</config-type>
+        <config-type>clickhouse-env</config-type>
+        <config-type>clickhouse-metrika</config-type>
+        <config-type>clickhouse-users</config-type>
+      </configuration-dependencies>
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>redhat7,redhat6</osFamily>
+          <packages>
+            <package>
+              <name>clickhouse_${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>ubuntu14,ubuntu16</osFamily>
+          <packages>
+            <package>
+              <name>clickhouse-${stack_version}</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+      <restartRequiredAfterChange>true</restartRequiredAfterChange>
     </service>
   </services>
 </metainfo>
