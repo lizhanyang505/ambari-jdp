@@ -18,8 +18,8 @@
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="upgrade-pack.xsd">
-  <target>3.0.*.*</target>
-  <target-stack>HDP-3.0</target-stack>
+  <target>3.1.*.*</target>
+  <target-stack>HDP-3.1</target-stack>
   <downgrade-allowed>false</downgrade-allowed>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
@@ -117,7 +117,7 @@
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Pre Upgrade Hive Table conversion notification">
         <task xsi:type="manual">
-          <message>Please note that all managed tables must become Acid or MM tables in Hive 3.0.</message>
+          <message>Please note that all managed tables must become Acid or MM tables in Hive 3.x.</message>
           <message>All tables will be compacted. No more Update/Delete/Merge (with update/delete) can be run after the upgrade.</message>
           <message>This may be time consuming, you may do it manually on host {{hosts.all}}</message>
           <message>Please note that after this step Hive Servers will be stopped, and the same command will be executed converting the tables left still unconverted.</message>
@@ -435,7 +435,7 @@
         <task xsi:type="configure" id="hdfs_fix_user_variable"/>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Convert HDP 2.6 variable naming to HDP 3.0">
+      <execute-stage service="HDFS" component="NAMENODE" title="Convert HDP 2.6 variable naming to HDP 3.1">
         <task xsi:type="configure" id="hdp_30_hdfs_stack_variables_update"/>
       </execute-stage>
 
@@ -490,7 +490,7 @@
       </execute-stage>
 
       <!-- Do this last to convert any variable which remained -->
-      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Convert YARN HDP 2.6 variable naming to HDP 3.0">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Convert YARN HDP 2.6 variable naming to HDP 3.1">
         <task xsi:type="configure" id="hdp_30_yarn_stack_variables_update"/>
       </execute-stage>
 
@@ -498,7 +498,7 @@
         <task xsi:type="configure" id="hdp_30_update_yarn_root_logger"/>
       </execute-stage>
 
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Convert Mapreduce HDP 2.6 variable naming to HDP 3.0">
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Convert Mapreduce HDP 2.6 variable naming to HDP 3.1">
         <task xsi:type="configure" id="hdp_30_mapred_stack_variables_update"/>
       </execute-stage>
 
@@ -735,11 +735,11 @@
       </execute-stage>
 
       <!--ACCUMULO-->
-      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Convert Accumulo HDP 2.6 env variable naming to HDP 3.0">
+      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Convert Accumulo HDP 2.6 env variable naming to HDP 3.1">
         <task xsi:type="configure" id="hdp_30_accumulo_stack_variables_update"/>
       </execute-stage>
 
-      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Update Accumulo HDP 2.6 classpath for HDP 3.0">
+      <execute-stage service="ACCUMULO" component="ACCUMULO_MASTER" title="Update Accumulo HDP 2.6 classpath for HDP 3.1">
         <task xsi:type="configure" id="hdp_30_accumulo_classpath_update"/>
       </execute-stage>
 
@@ -1324,6 +1324,13 @@
 
           <task xsi:type="configure_function" hosts="all"/>
 
+          <task xsi:type="manual">
+            <summary>Run Ranger JAVA patches</summary>
+            <message>Please follow below steps on any Ranger Admin hosts:</message>
+            <message> - Export RANGER_ADMIN_HOME=/usr/hdp/{{version}}/ranger-admin and JAVA_HOME environment variables.</message>
+            <message> - Run JAVA patches command using Ranger service process user: /usr/bin/python /usr/hdp/{{version}}/ranger-admin/db_setup.py -javapatch</message>
+          </task>
+
           <task xsi:type="execute" hosts="any">
             <summary>Applying Ranger java patches</summary>
             <script>scripts/ranger_admin.py</script>
@@ -1696,7 +1703,7 @@
       <component name="ATLAS_SERVER">
         <pre-upgrade>
           <task xsi:type="execute" hosts="all">
-            <summary>Configuring Atlas for HDP 3.0</summary>
+            <summary>Configuring Atlas for HDP 3.1</summary>
             <script>scripts/metadata_server.py</script>
             <function>configure_atlas_for_upgrade</function>
           </task>
